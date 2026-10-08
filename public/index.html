@@ -924,6 +924,14 @@ button.card{cursor:pointer}
 #game.firstgame .deck.take,#game.firstgame .pile.take .stack,#game.firstgame .pile.mine .stack{animation:firstglow 1.9s ease-in-out infinite}
 @keyframes firstglow{0%,100%{filter:drop-shadow(0 0 0 rgba(255,214,140,0))}50%{filter:drop-shadow(0 0 7px rgba(255,214,140,.95)) drop-shadow(0 0 18px rgba(255,190,100,.55))}}
 @media (prefers-reduced-motion:reduce){#game.firstgame .deck.take,#game.firstgame .pile.take .stack,#game.firstgame .pile.mine .stack{animation:none;filter:drop-shadow(0 0 6px rgba(255,214,140,.85))}}
+
+/* portrait picker: tabs over a scrolling pane of swatches and faces */
+.ltabs{margin:6px 0 4px}
+.lpane{max-height:min(46vh,400px);overflow:auto;padding:2px 4px 6px 0;overscroll-behavior:contain}
+.lrow.nolbl{grid-template-columns:1fr;border-top:0}
+.lrow.nolbl .lopts{gap:8px}
+.lpane .lopt .lf{width:48px;height:48px}
+@media (max-width:640px){.lpane .lopt .lf{width:42px;height:42px}}
 </style>
 
 <body>
@@ -1327,26 +1335,40 @@ const skyLanternSVG=()=>`<svg viewBox="0 0 40 56"><path d="M5 9C5 4 12 2 20 2s15
 /* =============================== PORTRAITS =============================== */
 /* Everyone at the table gets a small painted portrait. The three regulars each have their own look and one
    detail; anyone else (online friends) is put together from the same kit, seeded by their name so it never changes. */
-const SKIN=['#f4d2b2','#ebbb95','#d39a70','#ad7550','#86543a','#603b28'];
-const HAIR=['#2b1d18','#4a2c1e','#7a3b22','#a8652f','#d8a55c','#3a2b48','#5a4032'];
+/* the kit: the same lists are checked by the server (src/looks.js) before a look is passed to other players */
+const LOOK_OPTS={"skin":["#fbe4d6","#f7d7c4","#f4d0b5","#f0c8a4","#eec19a","#e6b58e","#ddb088","#d9a77c","#cf9a6e","#c89066","#bd8459","#b07a54","#a26c47","#94603f","#87563a","#784a32","#6b412c","#5e3826","#503021","#43281c","#38221a","#2d1c15"],"hair":["#120c0a","#241713","#36231a","#4c3022","#64402a","#7d4b2c","#8e3a22","#b5532b","#cf7a45","#9c7a4c","#c9a063","#e2c690","#efe3c4","#6e6a66","#9b9894","#c8c6c3","#f1eee8","#e48aa8","#9f80d8","#4f7fd0","#3a9e94","#7bae4f","#c8304a"],"style":["bald","buzz","crop","undercut","waves","short","side","quiff","bob","lob","long","wavy","curls","coils","afro","puff","puffs","locs","locslong","braids","cornrows","twists","bantu","bun","topknot","ponytail","pigtails","hijab","wrap"],"beard":["none","stubble","moustache","goatee","short","full"],"glasses":["none","round","square","cateye","half","shades"],"marks":"bfglmv","pierce":["none","studs","hoops","drops","cuff","nosestud","septum"],"acc":["none","clip","flower","headband","bow","beads","sticks"],"hat":["none","beanie","cap","bucket","headphones"]};
+const SKIN=LOOK_OPTS.skin,HAIR=LOOK_OPTS.hair,STYLES=LOOK_OPTS.style;
 const FACES={
-  You:{skin:'#f2c9a6',hair:'#6e3220',style:'bob',top:'#b23a2c',extra:'clip'},
-  Jina:{skin:'#efbf9a',hair:'#2e1d19',style:'bun',top:'#a8506a',extra:'sticks'},
-  Zeki:{skin:'#c98d63',hair:'#211815',style:'curls',top:'#3d7660',extra:'glasses'},
-  Eshe:{skin:'#7e4d30',hair:'#1c1210',style:'puff',top:'#66549e',extra:'hoops'},
+  You:{skin:'#f0c8a4',hair:'#7d4b2c',style:'bob',top:'#b23a2c',beard:'none',glasses:'none',marks:'',pierce:'none',acc:'clip',hat:'none'},
+  Jina:{skin:'#eec19a',hair:'#241713',style:'bun',top:'#a8506a',beard:'none',glasses:'none',marks:'',pierce:'studs',acc:'sticks',hat:'none'},
+  Zeki:{skin:'#c89066',hair:'#120c0a',style:'curls',top:'#3d7660',beard:'stubble',glasses:'round',marks:'',pierce:'none',acc:'none',hat:'none'},
+  Eshe:{skin:'#784a32',hair:'#120c0a',style:'puff',top:'#66549e',beard:'none',glasses:'none',marks:'',pierce:'hoops',acc:'none',hat:'none'},
 };
-/* a chosen look travels as "skin.hair.style.extra" (e.g. "2.3.bun.clip"): your own lives on this device,
-   other online players' arrive from the table */
-const STYLES=['bob','short','long','bun','curls','puff'],EXTRAS=['none','clip','glasses','freckles','hoops','sticks'];
+/* a chosen look travels as "v2.skin.hair.style.beard.glasses.marks.pierce.acc.hat" (e.g. "v2.4.3.locs.none.round.f.studs.none.none");
+   marks is any of b(lush) f(reckles) g(rey streak) l(aughter lines) m(ole) v(itiligo), or "-". Your own lives on this device. */
 const LOOKS={};
-function parseLook(s){const m=/^([0-5])\.([0-6])\.(bob|short|long|bun|curls|puff)\.(none|clip|glasses|freckles|hoops|sticks)$/.exec(s||'');return m?{skin:SKIN[+m[1]],hair:HAIR[+m[2]],style:m[3],extra:m[4]==='none'?'':m[4]}:null}
+const LOOK_KEYS=['skin','hair','style','beard','glasses','marks','pierce','acc','hat'];
+function lookFields(s){
+  s=String(s||'');
+  const o=/^([0-5])\.([0-6])\.(bob|short|long|bun|curls|puff)\.(none|clip|glasses|freckles|hoops|sticks)$/.exec(s);
+  if(o){const e=o[4];return {skin:[1,4,8,11,15,19][+o[1]],hair:[1,2,4,6,10,18,3][+o[2]],style:o[3],beard:'none',glasses:e==='glasses'?'round':'none',marks:e==='freckles'?'f':'',pierce:e==='hoops'?'hoops':'none',acc:e==='clip'||e==='sticks'?e:'none',hat:'none'}}
+  const p=s.split('.');if(p.length!==10||p[0]!=='v2')return null;
+  const [,sk,hr,st,bd,gl,mk,pc,ac,ht]=p,L=LOOK_OPTS;
+  if(!/^\d{1,2}$/.test(sk)||+sk>=L.skin.length||!/^\d{1,2}$/.test(hr)||+hr>=L.hair.length)return null;
+  if(!L.style.includes(st)||!L.beard.includes(bd)||!L.glasses.includes(gl)||!L.pierce.includes(pc)||!L.acc.includes(ac)||!L.hat.includes(ht))return null;
+  if(mk!=='-'&&(!/^[bfglmv]{1,6}$/.test(mk)||new Set(mk).size!==mk.length))return null;
+  return {skin:+sk,hair:+hr,style:st,beard:bd,glasses:gl,marks:mk==='-'?'':mk,pierce:pc,acc:ac,hat:ht};
+}
+const lookString=o=>['v2',o.skin,o.hair,o.style,o.beard,o.glasses,[...new Set(o.marks||'')].sort().join('')||'-',o.pierce,o.acc,o.hat].join('.');
+function parseLook(s){const o=lookFields(s);return o?{...o,skin:SKIN[o.skin],hair:HAIR[o.hair]}:null}
 const myLook=()=>store.get('look','');
 function faceOf(name,color,seed,me){
   if(me)return {...FACES.You,...(parseLook(myLook())||{}),top:color};
   const l=parseLook(LOOKS[name]);if(l)return {...l,top:color};
   if(FACES[name])return FACES[name];
-  const R=seeded(seed^0x5f3);
-  return {skin:SKIN[(R()*SKIN.length)|0],hair:HAIR[(R()*HAIR.length)|0],style:['bob','short','long','bun','curls','puff'][(R()*6)|0],top:color,extra:['','','freckles','clip','glasses'][(R()*5)|0]};
+  const R=seeded(seed^0x5f3),pick=a=>a[(R()*a.length)|0];
+  return {skin:pick(SKIN),hair:pick(HAIR.slice(0,17)),style:pick(STYLES),top:color,beard:R()<.25?pick(LOOK_OPTS.beard):'none',glasses:R()<.3?pick(LOOK_OPTS.glasses):'none',
+    marks:R()<.3?pick(['f','b','m','l','v']):'',pierce:R()<.35?pick(LOOK_OPTS.pierce):'none',acc:R()<.25?pick(LOOK_OPTS.acc):'none',hat:R()<.12?pick(LOOK_OPTS.hat):'none'};
 }
 let faceN=0;
 function faceSVG(f,seed){
@@ -1354,6 +1376,11 @@ function faceSVG(f,seed){
   const id='fc'+(++faceN),ink=lum<300?'#140a06':'#3b2419',hl='stroke="'+ink+'" stroke-opacity=".55" stroke-width=".9" stroke-linejoin="round"';
   const H=f.hair,S=f.skin;
   let back='',front='',extra='';
+  const TCAP='M20 31.4C19.6 24 25 20.6 32 20.6S44.4 24 44 31.4C42 27.6 37.6 25.8 32 25.8S22 27.6 20 31.4z';
+  const SCAP='M19.6 33.4C18.6 23.4 24.6 19.2 32 19.2S45.6 23.2 44.6 33.4C43.4 28.2 40.4 25.2 36.4 24.8 34.6 26.8 29.6 27.2 26.8 25.2 23.6 26.4 21 29.4 19.6 33.4z';
+  const ACC=f.top==='#b23a2c'?'#e0a03a':'#c8304a';
+  const dots=(x0,x1,y0,y1,r,c,o)=>{const Rd=seeded(seed+31);let d='';for(let i=0;i<14;i++)d+=`<circle cx="${f1(x0+Rd()*(x1-x0))}" cy="${f1(y0+Rd()*(y1-y0))}" r="${r}"/>`;return `<g fill="${c}" opacity="${o}">${d}</g>`};
+  const BR=c=>`<path d="M30.3 36.2q1.7-1 3.4 0M22.9 36l-2.6-1M41.1 36l2.6-1" fill="none" stroke="${c}" stroke-width="1.1" stroke-linecap="round"/>`;
   switch(f.style){
     case'bob':
       back=`<path d="M18.2 45C14.6 31 19 19.2 32 19.2S49.4 31 45.8 45C44.2 47.2 41.6 46.6 41.8 43.6L42 33H22l.2 10.6C22.4 46.6 19.8 47.2 18.2 45z" fill="${H}" ${hl}/>`;
@@ -1364,7 +1391,7 @@ function faceSVG(f,seed){
     case'short':
       front=`<path d="M19.6 33.4C18.6 23.4 24.6 19.2 32 19.2S45.6 23.2 44.6 33.4C43.4 28.2 40.4 25.2 36.4 24.8 34.6 26.8 29.6 27.2 26.8 25.2 23.6 26.4 21 29.4 19.6 33.4z" fill="${H}" ${hl}/>`;break;
     case'bun':
-      back=`<circle cx="32" cy="15.4" r="7.2" fill="${H}" ${hl}/>`+(f.extra==='sticks'?`<path d="M21.4 6.6l20 14.6M26.2 4.4l17.4 15.2" stroke="#b9824a" stroke-width="1.7" stroke-linecap="round"/><path d="M21.4 6.6l3 2.2M26.2 4.4l2.6 2.3" stroke="#a8506a" stroke-width="1.9" stroke-linecap="round"/>`:'');
+      back=`<circle cx="32" cy="15.4" r="7.2" fill="${H}" ${hl}/>`+(false?`<path d="M21.4 6.6l20 14.6M26.2 4.4l17.4 15.2" stroke="#b9824a" stroke-width="1.7" stroke-linecap="round"/><path d="M21.4 6.6l3 2.2M26.2 4.4l2.6 2.3" stroke="#a8506a" stroke-width="1.9" stroke-linecap="round"/>`:'');
       front=`<path d="M19.6 34.6C18.8 24.8 24.4 20.4 32 20.4S45.2 24.8 44.4 34.6C42.6 29.2 38.4 26 32.6 26 27.2 26 22.2 28.8 19.6 34.6z" fill="${H}" ${hl}/><path d="M20 34.4c-.9 3.4-.3 6.4 1.6 8.4" fill="none" stroke="${H}" stroke-width="1.6" stroke-linecap="round"/><path d="M26 23.2c2.4-1 5-1.2 7.4-.8" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.3" stroke-linecap="round"/>`;break;
     case'curls':{
       let c='';for(let i=0;i<9;i++){const a=(196+i*18.5)*Math.PI/180,r=13.6;c+=`<circle cx="${f1(32+r*Math.cos(a))}" cy="${f1(31+r*Math.sin(a)*1.05)}" r="${i%2?4.3:4.8}"/>`}
@@ -1372,11 +1399,120 @@ function faceSVG(f,seed){
     case'puff':
       back=`<path d="${roughCircle(32,24,17.5,1.6,seed+5,48)}" fill="${H}" ${hl}/><path d="M22 14c3-3.4 7.4-4.8 12-4" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="2" stroke-linecap="round"/>`;
       front=`<path d="M20.2 33C20 25.8 25.2 22.6 32 22.6S44 25.8 43.8 33C41 29.2 36.8 27.8 32 27.8S23 29.2 20.2 33z" fill="${H}"/><path d="M20.8 29.4C24 23.6 40 23.6 43.2 29.4" fill="none" stroke="#c9b6ec" stroke-width="3.2" stroke-linecap="round"/><path d="M21.4 28.4C24.8 23.4 39.2 23.4 42.6 28.4" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width=".9" stroke-linecap="round"/>`;break;
+    case'bald':
+      front=`<path d="M25.4 25.6c3-1.8 7.6-2.2 11-1.2" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="1.6" stroke-linecap="round"/>`;break;
+    case'buzz':
+      front=`<path d="${TCAP}" fill="${H}" fill-opacity=".82" ${hl}/>${dots(22,42,22.5,28,.5,'#fff',.12)}`;break;
+    case'crop':{
+      let c='';for(let i=0;i<8;i++){c+=`<circle cx="${f1(22.4+i*2.75)}" cy="${f1(24.6-Math.sin(i/7*Math.PI)*3.4)}" r="2.3"/>`}
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/><g fill="${H}" ${hl}>${c}</g>`;break}
+    case'undercut':
+      front=`<path d="M20.2 33C19.6 27 20.4 24 21.6 22.6M43.8 33C44.4 27 43.6 24 42.4 22.6" fill="none" stroke="${H}" stroke-opacity=".45" stroke-width="2.6" stroke-linecap="round"/><path d="M21 28.6C20.4 20.6 26.4 16.4 33.2 16.6S46.4 20.4 44 28C42.4 24.8 38.6 23.2 34.4 23.8 30 24.4 25.2 25.8 21 28.6z" fill="${H}" ${hl}/>`;break;
+    case'waves':
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/><g fill="none" stroke="#fff" stroke-opacity=".2" stroke-width=".8" stroke-linecap="round"><path d="M24 24.6q2-1.4 4 0t4 0 4 0 4 0"/><path d="M22.4 27.4q2-1.4 4 0t4 0 4 0 4 0 4 0"/></g>`;break;
+    case'side':
+      front=`<path d="M19.6 34C18.4 23 24.6 19 32 19S45.8 23.4 44.6 34C43.6 29 41.4 26 38 25 33 27.6 26.6 28.6 22.4 26.6 21 28.8 20 31.4 19.6 34z" fill="${H}" ${hl}/><path d="M37.6 19.8c-.6 1.8-.4 3.6.4 5" fill="none" stroke="${ink}" stroke-opacity=".35" stroke-width=".8" stroke-linecap="round"/>`;break;
+    case'quiff':
+      front=`<path d="${SCAP}" fill="${H}" ${hl}/><path d="M23.6 25.4C22.4 17.6 29.6 13 36 15.4 41.2 17.4 41.8 22 39.6 25.6 35.8 23.4 29.8 23.4 23.6 25.4z" fill="${H}" ${hl}/><path d="M27.4 19.6c2.4-1.8 5.4-2.2 8-1" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2" stroke-linecap="round"/>`;break;
+    case'lob':
+      back=`<path d="M17.8 51C14.2 35 18.4 19.2 32 19.2S49.8 35 46.2 51C44 53 40.8 52.2 41.4 49L42 33H22l.6 16C23.2 52.2 20 53 17.8 51z" fill="${H}" ${hl}/>`;
+      front=`<path d="M19.4 35C18.4 24.6 24.2 19.6 32.2 19.6S45.8 24.4 44.8 34.6C43.4 29.6 39.6 26.4 34.6 25.8 31.2 28.6 25.4 29.8 19.4 35z" fill="${H}" ${hl}/>`;break;
+    case'wavy':
+      back=`<path d="M18 60c-3-3 0-6-2.6-9.4S15 43 15.6 39C13.8 26 21 19.4 32 19.4S50.2 26 48.4 39c.6 4 2.4 8.2-.2 11.6S49 57 46 60C40 62.4 24 62.4 18 60z" fill="${H}" ${hl}/>`;
+      front=`<path d="M19.4 36C18.6 24.8 24.4 19.8 32 19.8S45.4 24.8 44.6 36C43.4 31 41 28 37.6 26.6 35 29.4 30.4 29.2 28 27 24.6 28.6 21.2 31.4 19.4 36z" fill="${H}" ${hl}/>`;break;
+    case'coils':{
+      let c='';for(let r=0;r<3;r++)for(let i=0;i<11-r*2;i++){const a=(200+r*14+i*(140-r*28)/(10-r*2))*Math.PI/180,rr=13.4-r*3.6;c+=`<circle cx="${f1(32+rr*Math.cos(a))}" cy="${f1(31.4+rr*Math.sin(a)*1.08)}" r="${(2.5-r*.2).toFixed(1)}"/>`}
+      front=`<path d="${TCAP}" fill="${H}"/><g fill="${H}" ${hl}>${c}</g>`;break}
+    case'afro':
+      back=`<path d="${roughCircle(32,27.5,21.5,1.7,seed+7,56)}" fill="${H}" ${hl}/><path d="M19 14c4-4.6 10-6.4 16-5.4" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="2.2" stroke-linecap="round"/>`;
+      front=`<path d="${TCAP}" fill="${H}"/>`;break;
+    case'puffs':
+      back=`<path d="${roughCircle(17.6,22.4,9,1.2,seed+3,32)}" fill="${H}" ${hl}/><path d="${roughCircle(46.4,22.4,9,1.2,seed+4,32)}" fill="${H}" ${hl}/>`;
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/><path d="M32 20.8v5" stroke="${ink}" stroke-opacity=".3" stroke-width=".8"/>`;break;
+    case'locs':case'locslong':case'braids':case'twists':{
+      const end=f.style==='locslong'||f.style==='braids'?63:f.style==='twists'?47:53,w=f.style==='braids'?3:f.style==='twists'?3.4:4.1;
+      const xs=[16.4,18.6,20.8,43.2,45.4,47.6],pat=f.style==='braids'?'stroke-dasharray="2.2 .9"':f.style==='twists'?'stroke-dasharray="1.6 1.1"':'';
+      back=xs.map((x,i)=>`<path d="M${f1(x+(x<32?2:-2))} 30Q${f1(x)} ${f1((30+end)/2)} ${f1(x+(i%2?.8:-.8))} ${end-(i%3)*2}" fill="none" stroke="${H}" stroke-width="${w}" stroke-linecap="round"/>`+(pat?`<path d="M${f1(x+(x<32?2:-2))} 30Q${f1(x)} ${f1((30+end)/2)} ${f1(x+(i%2?.8:-.8))} ${end-(i%3)*2}" fill="none" stroke="${ink}" stroke-opacity=".35" stroke-width="${w*.75}" ${pat}/>`:'')).join('');
+      back=`<path d="M17.6 34C16.8 24 22.6 18.6 32 18.6S47.2 24 46.4 34z" fill="${H}" ${hl}/>`+back;
+      let fr='';[23.6,27.6,31.6,35.6,39.6].forEach((x,i)=>{fr+=`<path d="M${x} 21.6Q${x-1.6} 25 ${x-2.4+i*.6} 28.2" fill="none" stroke="${H}" stroke-width="${w*.85}" stroke-linecap="round"/>`});
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/>${fr}`;break}
+    case'cornrows':{
+      let rows='';[-9,-4.5,0,4.5,9].forEach(o=>{rows+=`<path d="M${f1(32+o*1.05)} 22.4Q${f1(32+o*.8)} 26 ${f1(32+o*1.25)} 30.6" fill="none" stroke="${ink}" stroke-opacity=".38" stroke-width=".8" stroke-dasharray="1.4 .7"/>`});
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/>${rows}`;break}
+    case'bantu':{
+      let k='';[[23,24.4],[28.4,21.2],[35.6,21.2],[41,24.4],[32,26.2]].forEach(([x,y])=>{k+=`<circle cx="${x}" cy="${y-2.2}" r="3.3" fill="${H}" ${hl}/><path d="M${x+1.6} ${y-2.6}a1.6 1.6 0 1 1-1.6-1.4" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width=".8"/>`});
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/>${k}`;break}
+    case'topknot':
+      back=`<circle cx="32" cy="14.2" r="4.8" fill="${H}" ${hl}/>`;
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/><path d="M28.6 18.6c1.8 1.2 5 1.2 6.8 0" fill="none" stroke="${ink}" stroke-opacity=".35" stroke-width="1"/>`;break;
+    case'ponytail':
+      back=`<path d="M41 22C50 22 53 33 50.6 44 49.8 49 46.6 52.4 44.4 51.6 47 44 46.6 32 41 27z" fill="${H}" ${hl}/>`;
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/><path d="M40.6 21.6l3 2.6" stroke="${ACC}" stroke-width="2.4" stroke-linecap="round"/>`;break;
+    case'pigtails':
+      back=`<path d="M19 30C11.4 32 10 44 13.6 52 15 48 16.4 40 20.6 35z" fill="${H}" ${hl}/><path d="M45 30C52.6 32 54 44 50.4 52 49 48 47.6 40 43.4 35z" fill="${H}" ${hl}/>`;
+      front=`<path d="${TCAP}" fill="${H}" ${hl}/><path d="M32 20.8v5" stroke="${ink}" stroke-opacity=".3" stroke-width=".8"/><circle cx="19.2" cy="31.4" r="1.6" fill="${ACC}"/><circle cx="44.8" cy="31.4" r="1.6" fill="${ACC}"/>`;break;
+    case'hijab':
+      back=`<path d="M12.6 68C10.4 50 13 21 32 18.4S53.6 50 51.4 68z" fill="${H}" ${hl}/>`;
+      front=`<path fill-rule="evenodd" d="M15.4 58C13.6 42 16 19.4 32 19.4S50.4 42 48.6 58C44 61 20 61 15.4 58zM32 23.2C24.6 23.2 21.2 29 21.2 36.4S25.4 49.4 32 49.4 42.8 43.8 42.8 36.4 39.4 23.2 32 23.2z" fill="${H}" ${hl}/><path d="M22.6 27.4c4-4 14.8-4 18.8 0M18.6 46c2.6 5 6.6 8 13.4 8.6" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.1" stroke-linecap="round"/>`;break;
+    case'wrap':
+      front=`<path d="M18.8 33C16 20 22 9.4 32 9.4S48 20 45.2 33C43 27.6 38.6 25.4 32 25.4S21 27.6 18.8 33z" fill="${H}" ${hl}/><path d="M21.4 25.6C24 18.4 34 14.4 42.4 20.4M22.6 20.2C27 14 36.6 12.6 41.4 16.2M31 10.4c-2.4 4.2-2.4 9.2-.6 14.6" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.2" stroke-linecap="round"/><path d="M29.4 24.6c-1.6-3.4 2.4-5.6 4.6-3.2 1.6 1.8.2 4.4-2 4.6" fill="${H}" ${hl}/>`;break;
   }
-  if(f.extra==='glasses')extra+=`<g fill="#fff" fill-opacity=".14" stroke="#3b2a22" stroke-width="1.15"><circle cx="26.6" cy="36.6" r="3.7"/><circle cx="37.4" cy="36.6" r="3.7"/></g><path d="M30.3 36.2q1.7-1 3.4 0M22.9 36l-2.6-1M41.1 36l2.6-1" fill="none" stroke="#3b2a22" stroke-width="1.1" stroke-linecap="round"/>`;
-  if(f.extra==='hoops')extra+=`<g fill="none" stroke="#e2b04e" stroke-width="1.2"><circle cx="19.6" cy="41.6" r="2.1"/><circle cx="44.4" cy="41.6" r="2.1"/></g>`;
-  if(f.extra==='freckles')extra+=`<g fill="#9a5a3a" opacity=".5"><circle cx="24.4" cy="39.8" r=".55"/><circle cx="26" cy="40.6" r=".5"/><circle cx="23.4" cy="41" r=".45"/><circle cx="39.6" cy="40.6" r=".5"/><circle cx="41" cy="39.8" r=".55"/><circle cx="40.6" cy="41.2" r=".45"/></g>`;
-  if(f.extra==='clip')extra+=`<path d="M38.6 22.6l5.2 2.4" stroke="#f0c46a" stroke-width="2.2" stroke-linecap="round"/><circle cx="38.4" cy="22.5" r="1.4" fill="#ffe3a3"/>`;
+  /* face hair, in the hair colour; the mouth stays clear so expressions still read */
+  const MOU=`<path d="M27.4 41.4C29 40 31 40.4 32 41.2 33 40.4 35 40 36.6 41.4 35.4 43 33.4 42.6 32 42 30.6 42.6 28.6 43 27.4 41.4z" fill="${H}" ${hl}/>`;
+  let beard='';
+  switch(f.beard){
+    case'stubble':beard=`<path d="M20.4 38C21 46 26 50 32 50S43 46 43.6 38C42 43 37.6 45.4 32 45.6S22 43 20.4 38z" fill="${H}" opacity=".26"/>`+dots(23,41,43,48.4,.38,H,.4);break;
+    case'moustache':beard=MOU;break;
+    case'goatee':beard=MOU+`<path d="M29 45.6C29.6 49.4 34.4 49.4 35 45.6 33.6 46.6 30.4 46.6 29 45.6z" fill="${H}" ${hl}/>`;break;
+    case'short':beard=`<path d="M20.2 37.6C20.6 46.4 25.4 50.6 32 50.6S43.4 46.4 43.8 37.6C42.6 41.6 40 43.4 37 43.6 35.6 45.6 28.4 45.6 27 43.6 24 43.4 21.4 41.6 20.2 37.6z" fill="${H}" ${hl}/>`+MOU;break;
+    case'full':beard=`<path d="M19.6 36C19.4 48 25 55 32 55S44.6 48 44.4 36C43 41.4 40.4 43.4 37 43.6 35.6 45.8 28.4 45.8 27 43.6 23.6 43.4 21 41.4 19.6 36z" fill="${H}" ${hl}/><path d="M26 49.6c3 2 9 2 12 0" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="1" stroke-linecap="round"/>`+MOU;break;
+  }
+  /* skin: vitiligo patches, laughter lines, a mole, more blush */
+  const M=f.marks||'';let skinL='',lines='';
+  if(M.includes('v'))skinL+=`<g style="fill:color-mix(in srgb,${S} 42%,#fbeee2)"><path d="${roughCircle(24.4,32.6,3.2,.7,seed+11,18)}"/><path d="${roughCircle(39.6,44.6,2.6,.6,seed+12,16)}"/><path d="${roughCircle(33.8,47.6,2.2,.5,seed+13,14)}"/></g>`;
+  if(M.includes('b'))skinL+=`<ellipse cx="23.6" cy="41.2" rx="3.4" ry="2" fill="#e2604f" opacity=".3"/><ellipse cx="40.4" cy="41.2" rx="3.4" ry="2" fill="#e2604f" opacity=".3"/>`;
+  if(M.includes('l'))lines+=`<path d="M27.6 40.6q-1.2 1.6-.6 3.2M36.4 40.6q1.2 1.6.6 3.2M21.6 35.4l1.6.6M21.8 37.4l1.6-.1M42.4 35.4l-1.6.6M42.2 37.4l-1.6-.1" fill="none" stroke="${ink}" stroke-opacity=".32" stroke-width=".7" stroke-linecap="round"/>`;
+  if(M.includes('f'))lines+=`<g fill="#9a5a3a" opacity=".5"><circle cx="24.4" cy="39.8" r=".55"/><circle cx="26" cy="40.6" r=".5"/><circle cx="23.4" cy="41" r=".45"/><circle cx="39.6" cy="40.6" r=".5"/><circle cx="41" cy="39.8" r=".55"/><circle cx="40.6" cy="41.2" r=".45"/></g>`;
+  if(M.includes('m'))lines+=`<circle cx="38.6" cy="44.2" r=".75" fill="${ink}" opacity=".7"/>`;
+  const covered=f.style==='hijab'||f.style==='wrap',bareTop=covered||f.style==='bald';
+  if(M.includes('g')&&!bareTop)front+=`<path d="M25.2 21.6c-2 1.8-3.6 4.6-4.4 8.6" fill="none" stroke="#e6e2db" stroke-width="2" stroke-linecap="round" opacity=".9"/>`;
+  /* glasses */
+  const GL='#3b2a22';
+  switch(f.glasses){
+    case'round':extra+=`<g fill="#fff" fill-opacity=".14" stroke="${GL}" stroke-width="1.15"><circle cx="26.6" cy="36.6" r="3.7"/><circle cx="37.4" cy="36.6" r="3.7"/></g>`+BR(GL);break;
+    case'square':extra+=`<g fill="#fff" fill-opacity=".14" stroke="${GL}" stroke-width="1.15"><rect x="22.6" y="33.6" width="8" height="6.2" rx="1.2"/><rect x="33.4" y="33.6" width="8" height="6.2" rx="1.2"/></g>`+BR(GL);break;
+    case'cateye':extra+=`<g fill="#fff" fill-opacity=".14" stroke="#8e2f3c" stroke-width="1.2" stroke-linejoin="round"><path d="M22.2 34.4C25 33 28.6 33.2 30.6 34.6 30.4 38.4 28.6 40.2 26.4 40.2S22.6 38 22.2 34.4zM22.2 34.4l-1.4-1.6"/><path d="M41.8 34.4C39 33 35.4 33.2 33.4 34.6 33.6 38.4 35.4 40.2 37.6 40.2S41.4 38 41.8 34.4zM41.8 34.4l1.4-1.6"/></g>`+BR('#8e2f3c');break;
+    case'half':extra+=`<g fill="none" stroke="${GL}" stroke-width="1.1" stroke-linecap="round"><path d="M22.8 34.6h7.6M33.6 34.6h7.6"/><path d="M22.9 35.2q.4 4.4 3.8 4.4t3.6-4.4M33.7 35.2q.4 4.4 3.8 4.4t3.6-4.4" stroke-opacity=".55" stroke-width=".7"/></g>`+BR(GL);break;
+    case'shades':extra+=`<g fill="#1c1716" fill-opacity=".62" stroke="#1c1716" stroke-width="1.1"><circle cx="26.6" cy="36.6" r="3.8"/><circle cx="37.4" cy="36.6" r="3.8"/></g><path d="M24.6 35.4l1.6-1" stroke="#fff" stroke-opacity=".5" stroke-width=".8" stroke-linecap="round"/>`+BR('#1c1716');break;
+  }
+  /* piercings: ear ones hide under a hijab or wrap */
+  const GOLD='#e2b04e';
+  switch(f.pierce){
+    case'studs':if(f.style!=='hijab')extra+=`<g fill="${GOLD}" stroke="#8a6420" stroke-width=".4"><circle cx="19.6" cy="40.4" r="1"/><circle cx="44.4" cy="40.4" r="1"/></g>`;break;
+    case'hoops':if(f.style!=='hijab')extra+=`<g fill="none" stroke="${GOLD}" stroke-width="1.2"><circle cx="19.6" cy="41.6" r="2.1"/><circle cx="44.4" cy="41.6" r="2.1"/></g>`;break;
+    case'drops':if(f.style!=='hijab')extra+=`<g stroke="${GOLD}" stroke-width=".7"><path d="M19.6 40.2v2.6M44.4 40.2v2.6"/></g><g fill="#5fb7a6" stroke="#2f6f63" stroke-width=".4"><path d="M19.6 42.6c1 1.2 1 2.4 0 2.6-1-.2-1-1.4 0-2.6zM44.4 42.6c1 1.2 1 2.4 0 2.6-1-.2-1-1.4 0-2.6z"/></g>`;break;
+    case'cuff':if(f.style!=='hijab')extra+=`<g fill="none" stroke="${GOLD}" stroke-width="1"><path d="M18.4 34.6q-.8 1.2 0 2.4M45.6 34.6q.8 1.2 0 2.4"/></g><g fill="${GOLD}"><circle cx="19.6" cy="40.4" r=".8"/><circle cx="44.4" cy="40.4" r=".8"/></g>`;break;
+    case'nosestud':extra+=`<circle cx="34" cy="39.6" r=".7" fill="${GOLD}" stroke="#8a6420" stroke-width=".3"/>`;break;
+    case'septum':extra+=`<path d="M30.8 40.4q1.2 1.8 2.4 0" fill="none" stroke="${GOLD}" stroke-width=".9" stroke-linecap="round"/>`;break;
+  }
+  /* things in the hair */
+  if(!covered&&f.style!=='bald')switch(f.acc){
+    case'clip':extra+=`<path d="M38.6 22.6l5.2 2.4" stroke="#f0c46a" stroke-width="2.2" stroke-linecap="round"/><circle cx="38.4" cy="22.5" r="1.4" fill="#ffe3a3"/>`;break;
+    case'flower':extra+=`<g transform="translate(40.6 23.2)">${[0,72,144,216,288].map(a=>`<ellipse cx="0" cy="-2" rx="1.5" ry="2.2" transform="rotate(${a})" fill="#f2a7b8" stroke="#b5596f" stroke-width=".4"/>`).join('')}<circle r="1.1" fill="#f6d36a"/></g>`;break;
+    case'headband':extra+=`<path d="M20.4 30.4C22.6 22.4 41.4 22.4 43.6 30.4" fill="none" stroke="${ACC}" stroke-width="2.6" stroke-linecap="round"/><path d="M21.2 29.2C24 22.8 40 22.8 42.8 29.2" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width=".7"/>`;break;
+    case'bow':extra+=`<g transform="translate(40.4 21.6) rotate(18)" fill="${ACC}" stroke="#6b1f24" stroke-width=".5"><path d="M0 0L-4.6-2.6V2.6zM0 0L4.6-2.6V2.6z"/><circle r="1.2"/></g>`;break;
+    case'beads':extra+=`<g stroke="#6b4a2a" stroke-width=".4">${[[19.6,44,'#e2b04e'],[19.2,47.6,'#c8304a'],[44.6,45.4,'#4f7fd0'],[45,49,'#e2b04e']].map(([x,y,c])=>`<circle cx="${x}" cy="${y}" r="1.25" fill="${c}"/>`).join('')}</g>`;break;
+    case'sticks':{const [x,y]=f.style==='bun'?[32,15.4]:f.style==='topknot'?[32,14.2]:[38,21];
+      extra+=`<g transform="translate(${x-32} ${y-15.4})"><path d="M21.4 6.6l20 14.6M26.2 4.4l17.4 15.2" stroke="#b9824a" stroke-width="1.7" stroke-linecap="round"/><path d="M21.4 6.6l3 2.2M26.2 4.4l2.6 2.3" stroke="#a8506a" stroke-width="1.9" stroke-linecap="round"/></g>`;break}
+  }
+  /* hats sit over the hair */
+  let hat='';
+  if(!covered)switch(f.hat){
+    case'beanie':hat=`<path d="M18.8 31.4C17.6 19 24.6 13.4 32 13.4S46.4 19 45.2 31.4z" fill="#d27a3a" ${hl}/><path d="M18.4 31.6C18.2 28.8 18.4 27.4 19 26.4 27 24.6 37 24.6 45 26.4 45.6 27.4 45.8 28.8 45.6 31.6 37 30 27 30 18.4 31.6z" fill="#b8612a" ${hl}/>${[22,26,30,34,38,42].map(x=>`<path d="M${x} 26.2v4.4" stroke="#8a4418" stroke-opacity=".5" stroke-width=".7"/>`).join('')}<circle cx="32" cy="12.6" r="3.2" fill="#f1e2c4" ${hl}/>`;break;
+    case'cap':hat=`<path d="M19.4 30C18.6 20 24.8 15.6 32 15.6S45.4 20 44.6 30z" fill="#3f6f8f" ${hl}/><path d="M17.8 30.4C24 27.6 40 27.6 50.4 31.6 49 33.4 40.4 32.8 32 31.8 25 31 20 31.8 17.8 30.4z" fill="#2f5670" ${hl}/><circle cx="32" cy="16" r="1.1" fill="#2f5670"/><path d="M32 16v13" stroke="#2f5670" stroke-width=".6" opacity=".6"/>`;break;
+    case'bucket':hat=`<path d="M20.6 28.6C20.2 20 25.4 15.8 32 15.8S43.8 20 43.4 28.6z" fill="#b9a16a" ${hl}/><path d="M13.6 31.6C16 27.4 48 27.4 50.4 31.6 47 34 17 34 13.6 31.6z" fill="#a68e58" ${hl}/><path d="M20.8 26.4c6.4-1.2 16-1.2 22.4 0" fill="none" stroke="#6e5a2c" stroke-opacity=".5" stroke-width="1.2"/>`;break;
+    case'headphones':hat=`<path d="M18.6 37C17 22 24 15.4 32 15.4S47 22 45.4 37" fill="none" stroke="#3a3a42" stroke-width="2.4" stroke-linecap="round"/><rect x="15.2" y="33" width="5.6" height="9" rx="2.6" fill="#4b4b56" ${hl}/><rect x="43.2" y="33" width="5.6" height="9" rx="2.6" fill="#4b4b56" ${hl}/><path d="M16.6 35.4v4M47.4 35.4v4" stroke="#e48aa8" stroke-width="1.1" stroke-linecap="round"/>`;break;
+  }
   const shade=`color-mix(in srgb,${S} 78%,#6b2f1c)`;
   return `<svg class="face" viewBox="0 0 64 64" aria-hidden="true"><defs><clipPath id="${id}"><circle cx="32" cy="32" r="29.4"/></clipPath></defs>
   <g clip-path="url(#${id})">
@@ -1389,13 +1525,15 @@ function faceSVG(f,seed){
    <path d="M28.2 44.6h7.6v6.4c-2.4 1.6-5.2 1.6-7.6 0z" style="fill:${shade}"/>
    <ellipse cx="19.8" cy="37.4" rx="2.5" ry="3.3" fill="${S}" ${hl}/><ellipse cx="44.2" cy="37.4" rx="2.5" ry="3.3" fill="${S}" ${hl}/>
    <ellipse cx="32" cy="35.6" rx="12.6" ry="13.4" fill="${S}" ${hl}/>
+   ${skinL}
    <ellipse cx="23.6" cy="41" rx="2.7" ry="1.6" fill="#e2604f" opacity=".32"/><ellipse cx="40.4" cy="41" rx="2.7" ry="1.6" fill="#e2604f" opacity=".32"/>
    <path d="M31.3 39.8q.7.6 1.4 0" fill="none" style="stroke:${shade}" stroke-width="1" stroke-linecap="round"/>
+   ${lines}${beard}
    <g class="ex ex-idle"><g class="eyes" style="animation-delay:-${(seeded(seed)()*6).toFixed(2)}s"><ellipse cx="26.6" cy="36.8" rx="1.45" ry="1.85" fill="${ink}"/><ellipse cx="37.4" cy="36.8" rx="1.45" ry="1.85" fill="${ink}"/><circle cx="27.1" cy="36.1" r=".55" fill="#fff"/><circle cx="37.9" cy="36.1" r=".55" fill="#fff"/></g><path d="M30 42.8q2 1.6 4 0" fill="none" stroke="${ink}" stroke-width="1.1" stroke-linecap="round"/></g>
    <g class="ex ex-think"><ellipse cx="27.4" cy="35.9" rx="1.35" ry="1.7" fill="${ink}"/><ellipse cx="38.2" cy="35.9" rx="1.35" ry="1.7" fill="${ink}"/><path d="M35.2 32.4q2.6-1.6 5 -.2" fill="none" stroke="${ink}" stroke-width="1" stroke-linecap="round"/><circle cx="33" cy="43.2" r="1.05" fill="${ink}"/></g>
    <g class="ex ex-happy"><path d="M24.8 37.6q1.8-2.6 3.6 0M35.6 37.6q1.8-2.6 3.6 0" fill="none" stroke="${ink}" stroke-width="1.35" stroke-linecap="round"/><path d="M29 41.8q3 4.6 6 0z" fill="#7a2a22"/><path d="M30.4 43.4q1.6 1.2 3.2 0" fill="none" stroke="#e98a7a" stroke-width=".9"/></g>
    <g class="ex ex-sad"><ellipse cx="26.6" cy="37.2" rx="1.35" ry="1.6" fill="${ink}"/><ellipse cx="37.4" cy="37.2" rx="1.35" ry="1.6" fill="${ink}"/><path d="M24.4 34.6l3.6-1.1M39.6 34.6l-3.6-1.1" stroke="${ink}" stroke-width=".95" stroke-linecap="round"/><path d="M30.2 44q1.8-1.3 3.6 0" fill="none" stroke="${ink}" stroke-width="1.05" stroke-linecap="round"/></g>
-   ${front}${extra}
+   ${front}${hat}${extra}
    </g>
   </g></svg>`;
 }
@@ -2523,24 +2661,39 @@ function creditsModal(){
   $('#modal .sheet').style.width='min(560px,100%)';
 }
 /* your portrait: pick hair, colours and one small extra; kept on this device and shown to the whole table */
-function lookParts(){const m=/^(\d)\.(\d)\.(\w+)\.(\w+)$/.exec(myLook());return m?[+m[1],+m[2],m[3],m[4]]:[0,2,'bob','clip']}
+function lookNow(){return lookFields(myLook())||{skin:4,hair:5,style:'bob',beard:'none',glasses:'none',marks:'',pierce:'none',acc:'clip',hat:'none'}}
+let lookTab='skin';
+const LOOK_TABS=[['skin','skin'],['style','hair'],['hair','colour'],['face','face'],['more','extras']];
 function lookBody(){
-  const [sk,hr,st,ex]=lookParts(),k=(a)=>a.join('.');
-  const face=(look)=>`<span class="lf">${faceSVG({...parseLook(look),top:ME_COLOR},11)}</span>`;
-  const row=(lbl,items)=>`<div class="lrow"><span class="ll">${lbl}</span><div class="lopts">${items}</div></div>`;
-  const opt=(key,v,on,inner,label)=>`<button type="button" class="lopt${on?' on':''}" data-act="lookset" data-k="${key}" data-v="${v}" aria-pressed="${on}" aria-label="${label}">${inner}</button>`;
+  const L=lookNow(),O=LOOK_OPTS;
+  const face=o=>`<span class="lf">${faceSVG({...parseLook(lookString(o)),top:ME_COLOR},11)}</span>`;
+  const opt=(k,v,on,inner,label)=>`<button type="button" class="lopt${on?' on':''}" data-act="lookset" data-k="${k}" data-v="${v}" aria-pressed="${on}" aria-label="${label}">${inner}</button>`;
+  const row=(lbl,items)=>`<div class="lrow${lbl?'':' nolbl'}">${lbl?`<span class="ll">${lbl}</span>`:''}<div class="lopts">${items}</div></div>`;
+  const faces=(k,list,lbl)=>row(lbl,list.map(v=>opt(k,v,L[k]===v,face({...L,[k]:v}),v)).join(''));
+  const dabs=(k,list)=>row('',list.map((c,i)=>opt(k,i,L[k]===i,`<i class="dab" style="--dc:${c}"></i>`,k+' '+(i+1))).join(''));
+  const MK=[['f','freckles'],['v','vitiligo'],['m','mole'],['b','blush'],['l','laugh lines'],['g','grey streak']];
+  let body='';
+  if(lookTab==='skin')body=dabs('skin',O.skin);
+  if(lookTab==='style')body=faces('style',O.style,'');
+  if(lookTab==='hair')body=dabs('hair',O.hair);
+  if(lookTab==='face')body=faces('beard',O.beard,'beard')+faces('glasses',O.glasses,'glasses')+
+    row('marks',MK.map(([c,n])=>{const on=L.marks.includes(c);return `<button type="button" class="lopt${on?' on':''}" data-act="lookmark" data-v="${c}" aria-pressed="${on}" aria-label="${n}">${face({...L,marks:on?L.marks:L.marks+c})}</button>`}).join(''));
+  if(lookTab==='more')body=faces('pierce',O.pierce,'ears')+faces('acc',O.acc,'hair')+faces('hat',O.hat,'hat');
   return `<div class="lprev">${sealHTML('You',ME_COLOR,11,'lg','',true)}</div>
-  ${row('Hair',STYLES.map(s=>opt(2,s,s===st,face(k([sk,hr,s,ex])),s)).join(''))}
-  ${row('Colour',HAIR.map((c,i)=>opt(1,i,i===hr,`<i class="dab" style="--dc:${c}"></i>`,'hair colour '+(i+1))).join(''))}
-  ${row('Skin',SKIN.map((c,i)=>opt(0,i,i===sk,`<i class="dab" style="--dc:${c}"></i>`,'skin tone '+(i+1))).join(''))}
-  ${row('Extra',EXTRAS.map(e=>opt(3,e,e===ex,face(k([sk,hr,e==='sticks'?'bun':st,e])),e)).join(''))}
+  <div class="pentabs ltabs" role="tablist">${LOOK_TABS.map(([k,n])=>`<button role="tab" data-act="looktab" data-tab="${k}" aria-selected="${lookTab===k}">${n}</button>`).join('')}</div>
+  <div class="lpane">${body}</div>
   <div class="foot"><button class="link" data-act="lookrand">Shuffle</button><button class="btn primary" data-act="close" data-close>Done</button></div>`;
 }
-function lookModal(){openModal(`<div class="sheet-head"><h2>You</h2>${xBtn}</div><div id="lookbody">${lookBody()}</div>`,'look');$('#modal .sheet').style.width='min(520px,100%)'}
-function setLook(parts){
-  if(parts[3]==='sticks')parts[2]='bun';
-  const v=parts.join('.');if(!parseLook(v))return;store.set('look',v);sfx.select();
-  const b=$('#lookbody');if(b)b.innerHTML=lookBody();
+function lookModal(){openModal(`<div class="sheet-head"><h2>You</h2>${xBtn}</div><div id="lookbody">${lookBody()}</div>`,'look');$('#modal .sheet').style.width='min(600px,100%)'}
+function lookShuffle(){
+  const O=LOOK_OPTS,r=a=>a[(Math.random()*a.length)|0],p=x=>Math.random()<x;
+  return {skin:(Math.random()*O.skin.length)|0,hair:p(.85)?(Math.random()*17)|0:(Math.random()*O.hair.length)|0,style:r(O.style),
+    beard:p(.25)?r(O.beard.slice(1)):'none',glasses:p(.3)?r(O.glasses.slice(1)):'none',marks:p(.35)?r(['f','v','m','b','l','g','fb','lg']):'',
+    pierce:p(.4)?r(O.pierce.slice(1)):'none',acc:p(.3)?r(O.acc.slice(1)):'none',hat:p(.15)?r(O.hat.slice(1)):'none'};
+}
+function setLook(o){
+  const v=lookString(o);if(!lookFields(v))return;store.set('look',v);sfx.select();
+  const b=$('#lookbody');if(b){const sc=b.querySelector('.lpane')?.scrollTop||0;b.innerHTML=lookBody();const pn=b.querySelector('.lpane');if(pn)pn.scrollTop=sc}
   document.querySelectorAll('#lobby .place.me').forEach(pl=>{const old=pl.querySelector('.seal');if(old)old.outerHTML=sealHTML('You',ME_COLOR,11,'sm','',true)});
   if(net.ws&&net.ws.readyState===1)net.send({t:'join',name:net.name(),token:net.token(),look:v});
   if(G&&!G.over)render();
@@ -2641,8 +2794,10 @@ document.addEventListener('click',e=>{
     case'helptab':closeModal();helpModal(b.dataset.tab);break;
     case'credits':if(!modal)creditsModal();break;
     case'look':if(!modal)lookModal();break;
-    case'lookset':{const p=lookParts(),k=+b.dataset.k,v=b.dataset.v;p[k]=k<2?+v:v;setLook(p);break}
-    case'lookrand':setLook([(Math.random()*SKIN.length)|0,(Math.random()*HAIR.length)|0,STYLES[(Math.random()*STYLES.length)|0],EXTRAS[(Math.random()*5)|0]]);break;
+    case'lookset':{const o=lookNow(),k=b.dataset.k,v=b.dataset.v;o[k]=k==='skin'||k==='hair'?+v:v;setLook(o);break}
+    case'lookmark':{const o=lookNow(),c=b.dataset.v;o.marks=o.marks.includes(c)?o.marks.replace(c,''):o.marks+c;setLook(o);break}
+    case'looktab':lookTab=b.dataset.tab;{const bd=$('#lookbody');if(bd)bd.innerHTML=lookBody()}break;
+    case'lookrand':setLook(lookShuffle());break;
     case'quit':if(G&&!modal&&!G.over)quitModal();break;
     case'helper':helper=!helper;store.set('helper',helper);G&&renderMe();break;
     case'mute':setSound(!sndOn);break;

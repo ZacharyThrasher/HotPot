@@ -1,6 +1,7 @@
 // Room logic for one Hotpot table. Platform independent: the Durable Object wraps it,
 // and the tests drive it with fake connections and a fake clock.
 import { createGame, doTake, doDiscard, autoPlay, viewFor, DIFFS } from './rules.js';
+import { cleanLook } from './looks.js'; // portrait choices; anything else is dropped
 
 export const LOBBY_MS = 90_000;
 export const TURN_MS = 45_000;
@@ -8,8 +9,6 @@ const NPC_NAMES = ['Jina', 'Zeki', 'Eshe'];
 const MAX_HUMANS = 4;
 const IDLE_EXPIRE_MS = 2 * 60 * 60 * 1000;
 
-// a portrait choice: skin.hair.style.extra, e.g. "2.3.bun.clip"; anything else is dropped
-const cleanLook = (s) => (/^[0-5]\.[0-6]\.(bob|short|long|bun|curls|puff)\.(none|clip|glasses|freckles|hoops|sticks)$/.test(String(s ?? '')) ? String(s) : '');
 const cleanName = (s) => String(s ?? '').replace(/[^\p{L}\p{N} _.'-]/gu, '').trim().slice(0, 16) || 'Guest';
 
 export class RoomLogic {

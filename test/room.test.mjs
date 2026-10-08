@@ -156,3 +156,35 @@ test('portraits: chosen looks reach every seat, bad ones are dropped', () => {
   a.send({ t: 'join', name: 'Ana', token: a.token, look: '1.1.short.none' });
   assert.equal(b.inbox.filter((m) => m.t === 'state').at(-1).players[3].look, '1.1.short.none');
 });
+
+test('portraits: the new look format syncs and bad values are dropped', () => {
+  const env = mkEnv(), room = new RoomLogic(null, env);
+  const a = client(room, env, 'Ana'), b = client(room, env, 'Bo');
+  const good = 'v2.21.18.locs.full.cateye.bfv.septum.beads.headphones';
+  a.send({ t: 'join', name: 'Ana', token: a.token, look: good });
+  b.join();
+  assert.equal(b.last().seats[0].look, good);
+  const bad = [
+    'v2.22.0.bob.none.none.-.none.none.none', // skin out of range
+    'v2.0.23.bob.none.none.-.none.none.none', // hair out of range
+    'v2.0.0.mohawk.none.none.-.none.none.none', // unknown style
+    'v2.0.0.bob.none.none.ff.none.none.none', // repeated mark
+    'v2.0.0.bob.none.none.x.none.none.none', // unknown mark
+    'v2.0.0.bob.none.none.-.none.none', // missing a field
+    'v2.0.0.bob.none.none.-.none.none.none.none', // extra field
+    'v2.-1.0.bob.none.none.-.none.none.none',
+  ];
+  for (const look of bad) {
+    a.send({ t: 'join', name: 'Ana', token: a.token, look });
+    assert.equal(a.last().seats[0].look, '', look);
+  }
+  a.send({ t: 'join', name: 'Ana', token: a.token, look: 'v2.0.0.bald.none.none.-.none.none.none' });
+  assert.equal(a.last().seats[0].look, 'v2.0.0.bald.none.none.-.none.none.none');
+});
+
+test('portraits: the game and the server agree on every option', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { LOOK_OPTS } = await import('../src/looks.js');
+  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.deepEqual(JSON.parse(html.match(/const LOOK_OPTS=(\{.*?\});/)[1]), LOOK_OPTS);
+});
