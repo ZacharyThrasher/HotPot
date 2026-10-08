@@ -835,8 +835,18 @@ button.card{cursor:pointer}
 .pile .pname{position:relative;z-index:7}
 @media (min-width:901px){.catrow{--cw:66px}}
 @media (max-width:640px){
-  .line .hanko{right:auto;left:26px;top:-12px}
+  .line .hanko{left:auto;right:74px;top:-6px}
   .pile .cnt{right:calc(var(--pw)*-.62);bottom:calc(var(--pw)*-.3)}
+}
+.chili small{white-space:nowrap}
+.billsub[style*="left"]{text-wrap:pretty}
+.hand .card .thread{transition:opacity .15s}.hand .card.sel .thread{opacity:0}
+@media (max-width:640px){
+  #game{padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  .drows{gap:0}.drow{padding:10px 2px 12px}
+  .drow .cards{--cw:60px;min-height:86px;padding-left:4px;gap:0 6px}
+  .drow .cards .card{margin-left:0}
+  .sheet p{max-width:none}
 }
 .drawn .newnote{transition:opacity .25s ease .1s}.drawn.flying .newnote{opacity:0;transition:none}
 </style>
@@ -906,9 +916,9 @@ const catOf=t=>(t/3)|0;
 const nameOf=t=>CATS[catOf(t)].ings[t%3];
 const TURN_MS=45000, LOBBY_S=90, WIN_BONUS=100;
 const DIFFS={
-  cozy:    {label:'Mild',     hint:'they go easy',  thr:3.4, noise:3.0, rand:.18},
-  standard:{label:'Medium',   hint:'a fair match',    thr:1.6, noise:.7,  rand:0},
-  sharp:   {label:'Spicy',    hint:'they play to win',  thr:.7,  noise:.05, rand:0},
+  cozy:    {label:'Mild',     hint:'go easy',  thr:3.4, noise:3.0, rand:.18},
+  standard:{label:'Medium',   hint:'fair match',    thr:1.6, noise:.7,  rand:0},
+  sharp:   {label:'Spicy',    hint:'play to win',  thr:.7,  noise:.05, rand:0},
 };
 const NPCS=[{name:'Jina',color:'#a8506a'},{name:'Zeki',color:'#3d7660'},{name:'Eshe',color:'#66549e'}];
 const ME_COLOR='#b23a2c';
