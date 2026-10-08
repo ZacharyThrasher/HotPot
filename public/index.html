@@ -1394,8 +1394,11 @@ const skyLanternSVG=()=>`<svg viewBox="0 0 40 56"><path d="M5 9C5 4 12 2 20 2s15
 /* Everyone at the table gets a small painted portrait. The three regulars each have their own look and one
    detail; anyone else (online friends) is put together from the same kit, seeded by their name so it never changes. */
 /* the kit: the same lists are checked by the server (src/looks.js) before a look is passed to other players */
-const LOOK_OPTS={"skin":["#fbe4d6","#f7d7c4","#f4d0b5","#f0c8a4","#eec19a","#e6b58e","#ddb088","#d9a77c","#cf9a6e","#c89066","#bd8459","#b07a54","#a26c47","#94603f","#87563a","#784a32","#6b412c","#5e3826","#503021","#43281c","#38221a","#2d1c15"],"hair":["#120c0a","#241713","#36231a","#4c3022","#64402a","#7d4b2c","#8e3a22","#b5532b","#cf7a45","#9c7a4c","#c9a063","#e2c690","#efe3c4","#6e6a66","#9b9894","#c8c6c3","#f1eee8","#e48aa8","#9f80d8","#4f7fd0","#3a9e94","#7bae4f","#c8304a"],"style":["bald","buzz","crop","undercut","waves","short","side","quiff","bob","lob","long","wavy","curls","coils","afro","puff","puffs","locs","locslong","braids","cornrows","twists","bantu","bun","topknot","ponytail","pigtails","hijab","wrap"],"beard":["none","stubble","moustache","goatee","short","full"],"glasses":["none","round","square","cateye","half","shades"],"marks":"bfglmv","pierce":["none","studs","hoops","drops","cuff","nosestud","septum"],"acc":["none","clip","flower","headband","bow","beads","sticks"],"hat":["none","beanie","cap","bucket","headphones"]};
+const LOOK_OPTS={"skin":["#fbe4d6","#f7d7c4","#f4d0b5","#f0c8a4","#eec19a","#e6b58e","#ddb088","#d9a77c","#cf9a6e","#c89066","#bd8459","#b07a54","#a26c47","#94603f","#87563a","#784a32","#6b412c","#5e3826","#503021","#43281c","#38221a","#2d1c15"],"hair":["#120c0a","#241713","#36231a","#4c3022","#64402a","#7d4b2c","#8e3a22","#b5532b","#cf7a45","#9c7a4c","#c9a063","#e2c690","#efe3c4","#6e6a66","#9b9894","#c8c6c3","#f1eee8","#e48aa8","#9f80d8","#4f7fd0","#3a9e94","#7bae4f","#c8304a"],"style":["bald","buzz","lineup","caesar","taper","crop","undercut","waves","wavefade","curltop","sponge","short","side","quiff","bob","lob","long","wavy","curls","coils","afro","puff","puffs","locs","locsfade","locslong","braids","cornrows","twists","bantu","bun","topknot","ponytail","pigtails","hijab","wrap"],"beard":["none","stubble","moustache","goatee","short","full"],"glasses":["none","round","square","cateye","half","shades"],"marks":"bfglmv","pierce":["none","studs","hoops","drops","cuff","nosestud","septum"],"acc":["none","clip","flower","headband","bow","beads","sticks"],"hat":["none","beanie","cap","bucket","headphones"]};
 const SKIN=LOOK_OPTS.skin,HAIR=LOOK_OPTS.hair,STYLES=LOOK_OPTS.style;
+/* a hijab or head wrap is cloth, so the colour pick gives it a fabric shade instead (same slot, so the server list is unchanged) */
+const FABRIC=['#f3ead8','#fbfaf6','#1d1a1c','#4a4547','#9a9692','#273a5e','#86a9cf','#2f7f7a','#93a98a','#6d7342','#2e6b4b','#d8a63a','#efb79a','#e07a63','#b5583a','#7a2235','#c98a8f','#f0c4cc','#b9a3d6','#5c2f5a','#5a3726','#c39563','#dcc7a6'];
+const fabricOf=f=>f.fabric||FABRIC[Math.max(0,HAIR.indexOf(f.hair))];
 const FACES={
   You:{skin:'#f0c8a4',hair:'#7d4b2c',style:'bob',top:'#b23a2c',beard:'none',glasses:'none',marks:'',pierce:'none',acc:'clip',hat:'none'},
   Jina:{skin:'#eec19a',hair:'#241713',style:'bun',top:'#a8506a',beard:'none',glasses:'none',marks:'',pierce:'studs',acc:'sticks',hat:'none'},
@@ -1418,7 +1421,7 @@ function lookFields(s){
   return {skin:+sk,hair:+hr,style:st,beard:bd,glasses:gl,marks:mk==='-'?'':mk,pierce:pc,acc:ac,hat:ht};
 }
 const lookString=o=>['v2',o.skin,o.hair,o.style,o.beard,o.glasses,[...new Set(o.marks||'')].sort().join('')||'-',o.pierce,o.acc,o.hat].join('.');
-function parseLook(s){const o=lookFields(s);return o?{...o,skin:SKIN[o.skin],hair:HAIR[o.hair]}:null}
+function parseLook(s){const o=lookFields(s);return o?{...o,skin:SKIN[o.skin],hair:HAIR[o.hair],fabric:FABRIC[o.hair]}:null}
 const myLook=()=>store.get('look','');
 function faceOf(name,color,seed,me){
   if(me)return {...FACES.You,...(parseLook(myLook())||{}),top:color};
@@ -1432,13 +1435,16 @@ let faceN=0;
 function faceSVG(f,seed){
   const lum=parseInt(f.skin.slice(1,3),16)+parseInt(f.skin.slice(3,5),16);
   const id='fc'+(++faceN),ink=lum<300?'#140a06':'#3b2419',hl='stroke="'+ink+'" stroke-opacity=".55" stroke-width=".9" stroke-linejoin="round"';
-  const H=f.hair,S=f.skin;
+  const H=f.hair,S=f.skin,W=fabricOf(f);
   let back='',front='',extra='';
   const TCAP='M20 31.4C19.6 24 25 20.6 32 20.6S44.4 24 44 31.4C42 27.6 37.6 25.8 32 25.8S22 27.6 20 31.4z';
   const SCAP='M19.6 33.4C18.6 23.4 24.6 19.2 32 19.2S45.6 23.2 44.6 33.4C43.4 28.2 40.4 25.2 36.4 24.8 34.6 26.8 29.6 27.2 26.8 25.2 23.6 26.4 21 29.4 19.6 33.4z';
   const ACC=f.top==='#b23a2c'?'#e0a03a':'#c8304a';
   const dots=(x0,x1,y0,y1,r,c,o)=>{const Rd=seeded(seed+31);let d='';for(let i=0;i<14;i++)d+=`<circle cx="${f1(x0+Rd()*(x1-x0))}" cy="${f1(y0+Rd()*(y1-y0))}" r="${r}"/>`;return `<g fill="${c}" opacity="${o}">${d}</g>`};
   const BR=c=>`<path d="M30.3 36.2q1.7-1 3.4 0M22.9 36l-2.6-1M41.1 36l2.6-1" fill="none" stroke="${c}" stroke-width="1.1" stroke-linecap="round"/>`;
+  /* barbershop cuts: a fade that melts into the skin at the sides, and a crisp line-up at the hairline */
+  const FADE=`<defs><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="${H}" stop-opacity=".9"/><stop offset=".95" stop-color="${H}" stop-opacity=".06"/></linearGradient></defs><path d="M19.8 33.4C19.2 24 25 20.4 32 20.4S44.8 24 44.2 33.4H42.8L41.6 27.4C38.8 26.4 35.4 26 32 26S25.2 26.4 22.4 27.4L21.2 33.4z" fill="url(#${id}f)"/>`;
+  const EDGE=`<path d="M21.6 32.4L22.4 27.4C25.2 26.4 28.6 26 32 26S38.8 26.4 41.6 27.4L42.4 32.4" fill="none" stroke="${ink}" stroke-opacity=".5" stroke-width=".55" stroke-linejoin="miter"/>`;
   switch(f.style){
     case'bob':
       back=`<path d="M18.2 45C14.6 31 19 19.2 32 19.2S49.4 31 45.8 45C44.2 47.2 41.6 46.6 41.8 43.6L42 33H22l.2 10.6C22.4 46.6 19.8 47.2 18.2 45z" fill="${H}" ${hl}/>`;
@@ -1468,6 +1474,23 @@ function faceSVG(f,seed){
       front=`<path d="M20.2 33C19.6 27 20.4 24 21.6 22.6M43.8 33C44.4 27 43.6 24 42.4 22.6" fill="none" stroke="${H}" stroke-opacity=".45" stroke-width="2.6" stroke-linecap="round"/><path d="M21 28.6C20.4 20.6 26.4 16.4 33.2 16.6S46.4 20.4 44 28C42.4 24.8 38.6 23.2 34.4 23.8 30 24.4 25.2 25.8 21 28.6z" fill="${H}" ${hl}/>`;break;
     case'waves':
       front=`<path d="${TCAP}" fill="${H}" ${hl}/><g fill="none" stroke="#fff" stroke-opacity=".2" stroke-width=".8" stroke-linecap="round"><path d="M24 24.6q2-1.4 4 0t4 0 4 0 4 0"/><path d="M22.4 27.4q2-1.4 4 0t4 0 4 0 4 0 4 0"/></g>`;break;
+    case'lineup':
+      front=`<path d="M19.8 32.6C19.2 24 25 20.4 32 20.4S44.8 24 44.2 32.6H42.4L41.6 27.4C38.8 26.4 35.4 26 32 26S25.2 26.4 22.4 27.4L21.6 32.6z" fill="${H}" fill-opacity=".86" ${hl}/>${EDGE}${dots(22,42,21.6,26,.5,'#fff',.12)}`;break;
+    case'caesar':
+      front=`<path d="M20 32.4C19.4 24 25 20.2 32 20.2S44.6 24 44 32.4H42.6L42 26.4C39 25.4 35.6 25 32 25S25 25.4 22 26.4L21.4 32.4z" fill="${H}" ${hl}/><path d="M22.2 26.2C25.2 25.2 28.6 24.8 32 24.8S38.8 25.2 41.8 26.2" fill="none" stroke="${ink}" stroke-opacity=".5" stroke-width=".6"/><path d="M24.4 23.2q3.8-1.6 7.6-1.6" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1" stroke-linecap="round"/>`;break;
+    case'taper':
+      front=`${FADE}<path d="M21.8 27.4C21.4 21.6 26 19.4 32 19.4S42.6 21.6 42.2 27.4C39.4 26.2 35.8 25.8 32 25.8S24.6 26.2 21.8 27.4z" fill="${H}" ${hl}/>${EDGE}`;break;
+    case'wavefade':
+      front=`${FADE}<path d="M21.8 27.4C21.4 21.4 26 19.6 32 19.6S42.6 21.4 42.2 27.4C39.4 26.2 35.8 25.8 32 25.8S24.6 26.2 21.8 27.4z" fill="${H}" ${hl}/>${EDGE}<g fill="none" stroke="#fff" stroke-opacity=".24" stroke-width=".75" stroke-linecap="round"><path d="M25.4 22.4q1.6-1.2 3.3 0t3.3 0 3.3 0 3.3 0"/><path d="M23.6 25q1.6-1.2 3.3 0t3.3 0 3.3 0 3.3 0 3.3 0"/></g>`;break;
+    case'curltop':{
+      let c='';for(let i=0;i<7;i++){const x=23.4+i*2.85;c+=`<circle cx="${f1(x)}" cy="${f1(21.4-Math.sin(i/6*Math.PI)*3.6)}" r="${i%2?2.5:2.8}"/>`}
+      front=`${FADE}<path d="M22.2 27.2C21.6 20.6 26.2 17.6 32 17.6S42.4 20.6 41.8 27.2C39.2 26 35.8 25.6 32 25.6S24.8 26 22.2 27.2z" fill="${H}" ${hl}/><g fill="${H}" ${hl}>${c}</g>${EDGE}`;break}
+    case'sponge':{
+      let c='';[[23.2,24.2],[26.6,22.4],[30.2,21.6],[33.8,21.6],[37.4,22.4],[40.8,24.2],[25,20.2],[28.6,18.8],[32.2,18.4],[35.8,18.8],[39.2,20.2]].forEach(([x,y],i)=>{c+=`<circle cx="${x}" cy="${y}" r="${(1.9+(i%3)*.2).toFixed(1)}"/><path d="M${x-.8} ${y-.5}a1 1 0 0 1 1.4-.4" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width=".5"/>`});
+      front=`${FADE}<path d="M22.2 27.2C21.8 21.6 26.4 19.6 32 19.6S42.2 21.6 41.8 27.2C39 26 35.6 25.6 32 25.6S25 26 22.2 27.2z" fill="${H}" ${hl}/><g fill="${H}" ${hl}>${c}</g>${EDGE}`;break}
+    case'locsfade':{
+      let l='';[[24.6,-2.4],[27.6,-1.6],[30.6,-.6],[33.6,.6],[36.6,1.6],[39.6,2.4]].forEach(([x,d],i)=>{l+=`<path d="M${x} 16.6Q${f1(x+d*1.4)} 20 ${f1(x+d*2.2)} ${f1(25.6+(i%2)*1.2)}" fill="none" stroke="${H}" stroke-width="3.4" stroke-linecap="round"/><path d="M${x} 16.6Q${f1(x+d*1.4)} 20 ${f1(x+d*2.2)} ${f1(25.6+(i%2)*1.2)}" fill="none" stroke="${ink}" stroke-opacity=".3" stroke-width="2.4" stroke-dasharray="1.4 1"/>`});
+      front=`${FADE}<path d="M22.4 26.6C22 19.6 26.4 15.4 32 15.4S42 19.6 41.6 26.6z" fill="${H}" ${hl}/>${l}`;break}
     case'side':
       front=`<path d="M19.6 34C18.4 23 24.6 19 32 19S45.8 23.4 44.6 34C43.6 29 41.4 26 38 25 33 27.6 26.6 28.6 22.4 26.6 21 28.8 20 31.4 19.6 34z" fill="${H}" ${hl}/><path d="M37.6 19.8c-.6 1.8-.4 3.6.4 5" fill="none" stroke="${ink}" stroke-opacity=".35" stroke-width=".8" stroke-linecap="round"/>`;break;
     case'quiff':
@@ -1510,10 +1533,10 @@ function faceSVG(f,seed){
       back=`<path d="M19 30C11.4 32 10 44 13.6 52 15 48 16.4 40 20.6 35z" fill="${H}" ${hl}/><path d="M45 30C52.6 32 54 44 50.4 52 49 48 47.6 40 43.4 35z" fill="${H}" ${hl}/>`;
       front=`<path d="${TCAP}" fill="${H}" ${hl}/><path d="M32 20.8v5" stroke="${ink}" stroke-opacity=".3" stroke-width=".8"/><circle cx="19.2" cy="31.4" r="1.6" fill="${ACC}"/><circle cx="44.8" cy="31.4" r="1.6" fill="${ACC}"/>`;break;
     case'hijab':
-      back=`<path d="M12.6 68C10.4 50 13 21 32 18.4S53.6 50 51.4 68z" fill="${H}" ${hl}/>`;
-      front=`<path fill-rule="evenodd" d="M15.4 58C13.6 42 16 19.4 32 19.4S50.4 42 48.6 58C44 61 20 61 15.4 58zM32 23.2C24.6 23.2 21.2 29 21.2 36.4S25.4 49.4 32 49.4 42.8 43.8 42.8 36.4 39.4 23.2 32 23.2z" fill="${H}" ${hl}/><path d="M22.6 27.4c4-4 14.8-4 18.8 0M18.6 46c2.6 5 6.6 8 13.4 8.6" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.1" stroke-linecap="round"/>`;break;
+      back=`<path d="M12.6 68C10.4 50 13 21 32 18.4S53.6 50 51.4 68z" fill="${W}" ${hl}/>`;
+      front=`<path fill-rule="evenodd" d="M15.4 58C13.6 42 16 19.4 32 19.4S50.4 42 48.6 58C44 61 20 61 15.4 58zM32 23.2C24.6 23.2 21.2 29 21.2 36.4S25.4 49.4 32 49.4 42.8 43.8 42.8 36.4 39.4 23.2 32 23.2z" fill="${W}" ${hl}/><path d="M22.6 27.4c4-4 14.8-4 18.8 0M18.6 46c2.6 5 6.6 8 13.4 8.6" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.1" stroke-linecap="round"/>`;break;
     case'wrap':
-      front=`<path d="M18.8 33C16 20 22 9.4 32 9.4S48 20 45.2 33C43 27.6 38.6 25.4 32 25.4S21 27.6 18.8 33z" fill="${H}" ${hl}/><path d="M21.4 25.6C24 18.4 34 14.4 42.4 20.4M22.6 20.2C27 14 36.6 12.6 41.4 16.2M31 10.4c-2.4 4.2-2.4 9.2-.6 14.6" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.2" stroke-linecap="round"/><path d="M29.4 24.6c-1.6-3.4 2.4-5.6 4.6-3.2 1.6 1.8.2 4.4-2 4.6" fill="${H}" ${hl}/>`;break;
+      front=`<path d="M18.8 33C16 20 22 9.4 32 9.4S48 20 45.2 33C43 27.6 38.6 25.4 32 25.4S21 27.6 18.8 33z" fill="${W}" ${hl}/><path d="M21.4 25.6C24 18.4 34 14.4 42.4 20.4M22.6 20.2C27 14 36.6 12.6 41.4 16.2M31 10.4c-2.4 4.2-2.4 9.2-.6 14.6" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1.2" stroke-linecap="round"/><path d="M29.4 24.6c-1.6-3.4 2.4-5.6 4.6-3.2 1.6 1.8.2 4.4-2 4.6" fill="${W}" ${hl}/>`;break;
   }
   /* face hair, in the hair colour; the mouth stays clear so expressions still read */
   const MOU=`<path d="M27.4 41.4C29 40 31 40.4 32 41.2 33 40.4 35 40 36.6 41.4 35.4 43 33.4 42.6 32 42 30.6 42.6 28.6 43 27.4 41.4z" fill="${H}" ${hl}/>`;
@@ -2733,7 +2756,7 @@ function lookBody(){
   let body='';
   if(lookTab==='skin')body=dabs('skin',O.skin);
   if(lookTab==='style')body=faces('style',O.style,'');
-  if(lookTab==='hair')body=dabs('hair',O.hair);
+  if(lookTab==='hair')body=dabs('hair',L.style==='hijab'||L.style==='wrap'?FABRIC:O.hair);
   if(lookTab==='face')body=faces('beard',O.beard,'beard')+faces('glasses',O.glasses,'glasses')+
     row('marks',MK.map(([c,n])=>{const on=L.marks.includes(c);return `<button type="button" class="lopt${on?' on':''}" data-act="lookmark" data-v="${c}" aria-pressed="${on}" aria-label="${n}">${face({...L,marks:on?L.marks:L.marks+c})}</button>`}).join(''));
   if(lookTab==='more')body=faces('pierce',O.pierce,'ears')+faces('acc',O.acc,'hair')+faces('hat',O.hat,'hat');
