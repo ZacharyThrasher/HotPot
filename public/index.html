@@ -1808,12 +1808,12 @@ function music(on){
   },120);
 }
 function setSound(on){sndOn=on;store.set('sound',on);if(A.ctx){A.sfx.gain.setTargetAtTime(on?1:0,A.ctx.currentTime,.05);A.amb.gain.setTargetAtTime(on?1:0,A.ctx.currentTime,.2)}ambience(on);syncAudioBtns()}
-/* the real music: two Cantonese gaohu recordings (CC BY-SA 4.0) and six Kevin MacLeod pieces (CC BY 4.0), all
+/* the real music: six Kevin MacLeod pieces (CC BY 4.0), all
    credited in the lobby, played in turn with a slow crossfade. Each has its own playback level (g) so a busy
-   ensemble piece never comes in louder than a quiet solo fiddle; the files themselves are untouched.
+   ensemble piece never comes in louder than a quiet one; the files themselves are untouched.
    If the files can't load (opened without them), the little plucked tune above plays instead. */
-const TRACKS=[['ripples-kevin-macleod',.72],['lianhuankou-gaohu',1],['guzheng-city-kevin-macleod',.62],['ishikari-lore-kevin-macleod',1],
-  ['yu-da-bajiao-gaohu',1],['senbazuru-kevin-macleod',.59],['cattails-kevin-macleod',.36],['shenyang-kevin-macleod',.44]].map(([f,g])=>({src:'music/'+f+'.mp3',g}));
+const TRACKS=[['ripples-kevin-macleod',.72],['guzheng-city-kevin-macleod',.62],['ishikari-lore-kevin-macleod',1],
+  ['senbazuru-kevin-macleod',.59],['cattails-kevin-macleod',.36],['shenyang-kevin-macleod',.44]].map(([f,g])=>({src:'music/'+f+'.mp3',g}));
 const REC={els:[],cur:-1,ok:null,vol:.32,fade:null};
 function recEl(i){
   if(REC.els[i])return REC.els[i];
@@ -2452,11 +2452,8 @@ function helpModal(tab='rules'){
   ${tab==='rules'?rules:cards}`,'help');
 }
 function creditsModal(){
-  const by='<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>';
   openModal(`<h2>Music</h2>
   <ul class="credits">
-   <li><b>Lian Huan Kou (連環扣), “Linked Rings”</b> by Yan Laolie, performed by Zhang Peijian, recorded by David290, via <a href="https://commons.wikimedia.org/wiki/File:%E8%BF%9E%E7%8E%AF%E6%89%A3.ogg" target="_blank" rel="noopener">Wikimedia Commons</a>, ${by}</li>
-   <li><b>Yu Da Ba Jiao (雨打芭蕉), “Rain on Banana Leaves”</b>, traditional, arr. Qiu Hechou, performed by Zhang Peijian, recorded by David290, via <a href="https://commons.wikimedia.org/wiki/File:%E9%9B%A8%E6%89%93%E8%8A%AD%E8%95%89.ogg" target="_blank" rel="noopener">Wikimedia Commons</a>, ${by}</li>
    <li><b>“Ripples”, “Guzheng City”, “Ishikari Lore”, “Senbazuru”, “Cattails”, “Shenyang”</b><br>Kevin MacLeod (<a href="https://incompetech.com" target="_blank" rel="noopener">incompetech.com</a>)<br>Licensed under Creative Commons: By Attribution 4.0<br><a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">http://creativecommons.org/licenses/by/4.0/</a></li>
   </ul>
   <div class="foot"><button class="btn primary" data-act="close" data-close>Lovely</button></div>`,'credits');
