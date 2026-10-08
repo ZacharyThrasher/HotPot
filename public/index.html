@@ -704,6 +704,19 @@ button.card{cursor:pointer}
   .slot{font-size:13px}
   .line.win::before{inset:2px -6px}
 }
+
+/* all 24 foods: little shelves, each with a paper price tag on a string */
+.catgrid{gap:18px 26px}
+.catrow{background:none;padding:0;display:flex;align-items:flex-end;gap:12px;border-radius:0}
+.ctag{flex:none;width:86px;position:relative;isolation:isolate;padding:8px 8px 7px 16px;transform:rotate(var(--tl,-2deg));align-self:center}
+.ctag::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--grain),color-mix(in srgb,var(--c) 22%,#fbf3e2);-webkit-mask:var(--rough-b) 0 0/100% 100% no-repeat;mask:var(--rough-b) 0 0/100% 100% no-repeat;filter:drop-shadow(0 2px 2px rgba(60,30,10,.25))}
+.ctag::after{content:"";position:absolute;left:6px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:#efe2c6;box-shadow:inset 0 1px 1px rgba(60,30,10,.4)}
+.ctag b{display:block;font:700 18px/1 var(--f-hand);color:color-mix(in srgb,var(--c) 60%,#2b1608)}
+.ctag small{display:block;font:400 14px/1.1 var(--f-hand);color:var(--ink3);margin-top:2px}
+.shelf{display:flex;gap:0;padding:0 6px 7px;position:relative}
+.shelf::after{content:"";position:absolute;left:0;right:0;bottom:0;height:7px;border-radius:2px;background:linear-gradient(180deg,#b88a5c,#8a5f3a);box-shadow:0 3px 4px rgba(60,30,10,.3)}
+.shelf .card{margin-left:-6px;transform:rotate(var(--rot,0deg));transform-origin:50% 100%}
+.shelf .card:first-child{margin-left:0}
 </style>
 
 <body>
@@ -1057,7 +1070,13 @@ function skySVG(W,H){
    <rect width="${W}" height="${hz+2}" fill="url(#sg)"/><ellipse cx="${W/2}" cy="${hz}" rx="${W*.7}" ry="${H*.22}" fill="url(#hg)"/>`;
   for(let i=0;i<Math.round(W*H/9000);i++){const x=R()*W,y=R()*hz*.85,r=.4+R()*R()*1.4;s+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#fff6dc" opacity="${(.35+R()*.6).toFixed(2)}" ${R()<.3?`class="twinkle" style="animation-delay:${(-R()*5).toFixed(2)}s;animation-duration:${(3+R()*4).toFixed(1)}s"`:''}/>`}
   const mx=W*.84,my=H*.17,mr=Math.max(16,Math.min(W,H)*.042);
-  s+=`<circle cx="${mx}" cy="${my}" r="${mr*5}" fill="url(#mg)"/><circle cx="${mx}" cy="${my}" r="${mr}" fill="#fbefd4"/><circle cx="${mx-mr*.3}" cy="${my-mr*.2}" r="${mr*.22}" fill="#e6d4b0" opacity=".55"/><circle cx="${mx+mr*.35}" cy="${my+mr*.3}" r="${mr*.15}" fill="#e6d4b0" opacity=".5"/><circle cx="${mx+mr*.1}" cy="${my-mr*.5}" r="${mr*.1}" fill="#e6d4b0" opacity=".45"/>`;
+  // a painted moon: soft halo, wobbly edge, mottled seas
+  {let maria='';for(let i=0;i<5;i++){const a=i*1.3+R()*.6,d=mr*(.3+R()*.35),r=mr*(.1+R()*.13);maria+=`<path d="${roughCircle(mx+Math.cos(a)*d,my+Math.sin(a)*d,r,r*.25,(R()*999)|0,20)}" fill="#dcc296" opacity="${(.3+R()*.2).toFixed(2)}"/>`}
+   s+=`<radialGradient id="mface" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#fff8e6"/><stop offset=".7" stop-color="#f6e4bf"/><stop offset="1" stop-color="#e3c995"/></radialGradient>
+   <circle cx="${mx}" cy="${my}" r="${mr*6}" fill="url(#mg)"/>
+   <path d="${roughCircle(mx,my,mr,mr*.012,41,72)}" fill="url(#mface)"/>${maria}
+   <path d="M${f1(mx+mr*.55)} ${f1(my-mr*.62)}a${f1(mr*.9)} ${f1(mr*.9)} 0 0 1 ${f1(mr*.3)} ${f1(mr*.95)}" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="${f1(mr*.08)}" stroke-linecap="round"/>
+   <ellipse cx="${f1(mx-mr*.4)}" cy="${f1(my+mr*.15)}" rx="${f1(mr*1.9)}" ry="${f1(mr*.18)}" fill="#5a3a5e" opacity=".45" filter="url(#cl)"/>`}
   for(let i=0;i<5;i++){const y=H*(.12+R()*.32),x=R()*W,w=W*(.18+R()*.25);s+=`<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(w)}" ry="${f1(10+R()*16)}" fill="${i%2?'#6a4466':'#5a3a5e'}" opacity="${(.22+R()*.18).toFixed(2)}" filter="url(#cl)"/>`}
   // the far shore: soft hills, little rooftops and fairground tents with warm windows
   let hill=`M0 ${hz}`;for(let x=0;x<=W;x+=W/12)hill+=`L${f1(x)} ${f1(hz-14-R()*26-Math.sin(x/W*3.1)*16)}`;s+=`<path d="${hill}L${W} ${hz}z" fill="#2c2038"/>`;
@@ -1069,9 +1088,11 @@ function skySVG(W,H){
     else if(k<.75){const h=22+R()*18;roofs+=`<path d="M${f1(x)} ${f1(b)}l${f1(w/2)} ${f1(-h)}l${f1(w/2)} ${f1(h)}z" fill="${R()<.5?'#3a2234':'#2a2032'}"/><path d="M${f1(x+w/2)} ${f1(b-h)}v-9l7 3-7 3" fill="#6e3040" stroke="#1d1524" stroke-width="1"/>`;lights+=`<path d="M${f1(x+w*.4)} ${f1(b)}l${f1(w*.1)} -10l${f1(w*.1)} 10z" fill="#ffb85c" opacity=".7"/>`}
     else{const h=30+R()*16,ew=w*.9;roofs+=`<path d="M${f1(x+w*.3)} ${f1(b)}V${f1(b-h)}h${f1(w*.4)}V${f1(b)}z" fill="#211928"/><path d="M${f1(x+w/2-ew/2)} ${f1(b-h*.5)}q${f1(ew*.15)} -3 ${f1(ew*.25)} -9h${f1(ew*.5)}q${f1(ew*.1)} 6 ${f1(ew*.25)} 9z" fill="#1c1522"/><path d="M${f1(x+w/2-ew*.4)} ${f1(b-h+2)}q${f1(ew*.12)} -2 ${f1(ew*.2)} -8h${f1(ew*.4)}q${f1(ew*.08)} 6 ${f1(ew*.2)} 8z" fill="#1c1522"/><path d="M${f1(x+w/2)} ${f1(b-h-6)}v-8" stroke="#1c1522" stroke-width="2"/>`;lights+=`<circle cx="${f1(x+w*.5)}" cy="${f1(b-h*.25)}" r="2" fill="#ffd27e"/><circle cx="${f1(x+w*.5)}" cy="${f1(b-h*.72)}" r="1.6" fill="#ffd27e" opacity=".8"/>`}
   }
-  // a little ferris wheel, because it's the Fairgrounds
-  {const fx=W*.09,fr=Math.min(70,H*.08),fy=hz-fr-10;let sp='';for(let i=0;i<12;i++){const a=i/12*6.283;sp+=`<path d="M${f1(fx)} ${f1(fy)}L${f1(fx+fr*Math.cos(a))} ${f1(fy+fr*Math.sin(a))}" stroke="#2a1f33" stroke-width="1.2"/><rect x="${f1(fx+fr*Math.cos(a)-3)}" y="${f1(fy+fr*Math.sin(a))}" width="6" height="5" rx="1.5" fill="#2a1f33"/><circle cx="${f1(fx+fr*Math.cos(a))}" cy="${f1(fy+fr*Math.sin(a)+2.5)}" r="1.3" fill="#ffc96e" opacity="${(.5+R()*.5).toFixed(2)}"/>`}
-   roofs+=`<g><circle cx="${f1(fx)}" cy="${f1(fy)}" r="${f1(fr)}" fill="none" stroke="#2a1f33" stroke-width="2.4"/>${sp}<path d="M${f1(fx-fr*.55)} ${f1(hz)}L${f1(fx)} ${f1(fy)}L${f1(fx+fr*.55)} ${f1(hz)}" fill="none" stroke="#2a1f33" stroke-width="3"/></g>`}
+  // a little ferris wheel, because it's the Fairgrounds: painted dusk violet, with lit cabins
+  {const fx=W*.09,fr=Math.min(70,H*.08),fy=hz-fr-10;let sp='',cab='';
+   for(let i=0;i<12;i++){const a=i/12*6.283,x=fx+fr*Math.cos(a),y=fy+fr*Math.sin(a);sp+=`M${f1(fx)} ${f1(fy)}L${f1(x)} ${f1(y)}`;
+     const lit=R()<.7;cab+=`<path d="M${f1(x)} ${f1(y)}v2.5" stroke="#3a2b46" stroke-width="1"/><path d="M${f1(x-3.6)} ${f1(y+2.5)}h7.2l-.8 5.6h-5.6z" fill="${lit?'#e9a253':'#3a2b46'}" stroke="#2a1f33" stroke-width=".8"/>${lit?`<circle cx="${f1(x)}" cy="${f1(y+5)}" r="6" fill="#ffc96e" opacity=".18"/>`:''}`}
+   roofs+=`<g opacity=".95"><path d="${sp}" stroke="#3d2d4c" stroke-width="1.4"/><circle cx="${f1(fx)}" cy="${f1(fy)}" r="${f1(fr)}" fill="none" stroke="#45334f" stroke-width="3.4"/><circle cx="${f1(fx)}" cy="${f1(fy)}" r="${f1(fr*.86)}" fill="none" stroke="#3d2d4c" stroke-width="1.2"/><circle cx="${f1(fx)}" cy="${f1(fy)}" r="4" fill="#45334f"/>${cab}<path d="M${f1(fx-fr*.55)} ${f1(hz)}L${f1(fx)} ${f1(fy)}L${f1(fx+fr*.55)} ${f1(hz)}" fill="none" stroke="#3a2b46" stroke-width="4" stroke-linecap="round"/></g>`}
   s+=roofs+lights;
   s+=`<rect y="${hz}" width="${W}" height="${H-hz}" fill="url(#wg)"/>`;
   for(let i=0;i<26;i++){const x=R()*W,y=hz+4+R()*(H-hz)*.5,w=8+R()*40;s+=`<rect class="shimmer" x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="1.6" rx="1" fill="${R()<.6?'#ffb766':'#ffe6c0'}" opacity="${(.15+R()*.3).toFixed(2)}" style="animation-delay:${(-R()*6).toFixed(2)}s"/>`}
@@ -1952,7 +1973,7 @@ function helpModal(tab='rules'){
   <p class="say">At the end, everyone counts the sets in their hand: three of a kind is worth <em>120</em>, a colour set <em>60</em>, and whoever called hotpot gets <em>100</em> more. If the pot runs dry first, nobody wins.</p>
   <p class="say small">There are 96 cards: 8 colours, 3 foods in each, 4 of every food. You get 45 seconds a turn, and what the others throw away tells you what they’re keeping.</p>
   <p class="keys">On a keyboard: <kbd>D</kbd> draws, <kbd>←</kbd> <kbd>→</kbd> and <kbd>Enter</kbd> pick and toss, <kbd>T</kbd> opens this page.</p>`;
-  const cards=`<div class="catgrid">${CATS.map((c,ci)=>`<div class="catrow"><div class="lbl"><i style="background:${c.color}"></i>${c.col}<small>${c.name}</small></div>${[0,1,2].map(i=>cardHTML({t:ci*3+i,id:''},{cls:'flat'})).join('')}</div>`).join('')}</div>`;
+  const cards=`<p class="say small">Eight colours, three foods in each. Three of one food, or one of each food in a colour, makes a set.</p><div class="catgrid">${CATS.map((c,ci)=>`<div class="catrow" style="--c:${c.color};--tl:${[-3,2,-2,3,-1,2.5,-2.5,1.5][ci]}deg"><div class="ctag"><b>${c.col}</b><small>${c.name.toLowerCase()}</small></div><div class="shelf">${[0,1,2].map(i=>cardHTML({t:ci*3+i,id:''},{cls:'flat',style:`--rot:${[-4,1,5][i]}deg`})).join('')}</div></div>`).join('')}</div>`;
   openModal(`<div class="sheet-head"><h2>How to play</h2>${xBtn}</div>
   <div class="pentabs" role="tablist"><button role="tab" data-act="helptab" data-tab="rules" aria-selected="${tab==='rules'}">the rules</button><button role="tab" data-act="helptab" data-tab="cards" aria-selected="${tab==='cards'}">all 24 foods</button></div>
   ${tab==='rules'?rules:cards}`,'help');
