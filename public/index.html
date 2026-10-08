@@ -2529,7 +2529,7 @@ const net={
     $('#game').hidden=true;$('#lobby').hidden=false;
     if(!$('#olSeats')){
       $('#lobby').innerHTML=`<div class="menu paper lift">${tapes()}
-        ${heroHTML('an online table, just for friends')}
+        ${heroHTML('')}
         <div class="invite"><p class="q">Table</p><div class="code">${esc(this.code)}</div>
           <div class="invrow"><input id="olLink" class="field" readonly value="${esc(this.link())}" aria-label="Invite link"><button class="btn sm primary" data-act="copylink">Copy link</button></div></div>
         <div class="waiting">${ringHTML()}<p id="ctext"></p></div>
