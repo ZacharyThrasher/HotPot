@@ -932,6 +932,63 @@ button.card{cursor:pointer}
 .lrow.nolbl .lopts{gap:8px}
 .lpane .lopt .lf{width:48px;height:48px}
 @media (max-width:640px){.lpane .lopt .lf{width:42px;height:42px}}
+
+/* ===== phones: one menu tag, slim slip, big deck and piles, a hand that fills the bottom ===== */
+.menutag{display:none!important}
+@media (max-width:640px),(max-height:480px) and (orientation:landscape){
+  .tools{position:relative}
+  .tools .menutag{display:grid!important;--tt:-2deg}
+  /* the other tags hang from the menu tag in a short string of paper, one under the next */
+  .tools>.ibtn:not(.menutag){position:absolute;right:0;top:calc(44px + var(--i)*50px);z-index:30;
+    display:flex;align-items:center;gap:7px;min-width:96px;padding:13px 12px 6px 10px;justify-items:start;
+    visibility:hidden;opacity:0;pointer-events:none;transform-origin:50% -60%;
+    transform:translateY(calc(-30px - var(--i)*30px)) rotate(-9deg);
+    transition:transform .5s cubic-bezier(.3,1.55,.5,1) calc(var(--i)*35ms),opacity .18s ease calc(var(--i)*35ms),visibility 0s linear .5s}
+  .tools>.ibtn:not(.menutag)::before{top:-4px;height:16px;bottom:auto;left:auto;right:18px;z-index:-2}
+  .tools>.ibtn:not(.menutag) .w{display:block!important;font-size:15px}
+  .tools>.ibtn:not(.menutag) svg{width:19px;height:19px;flex:none}
+  .tools.open>.ibtn:not(.menutag){visibility:visible;opacity:1;pointer-events:auto;transform:rotate(var(--tt,0deg));
+    transition:transform .55s cubic-bezier(.3,1.55,.5,1) calc(var(--i)*45ms),opacity .15s ease calc(var(--i)*45ms),visibility 0s}
+  .tools>[data-act=discards]{--i:0;--tt:-1.5deg}.tools>[data-act=helper]{--i:1;--tt:1.5deg}.tools>[data-act=help]{--i:2;--tt:-1deg}
+  .tools>[data-act=mute]{--i:3;--tt:2deg}.tools>[data-act=music]{--i:4;--tt:-2deg}.tools>[data-act=quit]{--i:5;--tt:1deg}
+  .tools>.ibtn[data-act=handview]{display:none!important}
+  .ibtn:not(.menutag):hover{transform:rotate(var(--tt,0deg))}
+}
+@media (max-height:480px) and (orientation:landscape){
+  .tools>.ibtn:not(.menutag){top:calc(36px + var(--i)*45px);padding:11px 12px 5px 10px}
+  .menutag .w{display:none}
+}
+@media (max-width:640px) and (orientation:portrait){
+  /* the slip moves up between the round tag and the menu tag, one slim line with the fuse under it */
+  .slipwrap{margin-top:-44px}
+  .slip{width:calc(100vw - 196px);min-height:0!important;padding:5px 12px 11px}
+  .slip .msg{font-size:15px;line-height:1.15}
+  .slip .log{display:none}
+  .slip .fuse{bottom:4px}
+  .slip .pin{display:none}
+  .hud{min-height:44px}
+  /* the hand: as wide as the screen allows, but never so tall the pot can't fit */
+  #me{--cw:clamp(58px,min(calc((92vw - 24px)/3),calc((100svh - 430px)/4.25)),124px);padding-top:0}
+  .hand{gap:12px 12px;row-gap:12px;padding-top:6px}
+  .mebar{margin-top:4px;min-height:40px}
+  /* the draw pile is a full card you can't miss; discard piles sit on solid mats */
+  .ring-seats{--pw:clamp(44px,min(19cqh,20cqw),58px);--dw:clamp(54px,min(25cqh,27cqw),66px)}
+  .deck{--cw:var(--dw);--bw:var(--dw);width:var(--dw);height:calc(var(--dw)*1.4);left:calc(50% - var(--dw)/2);top:calc(50% - var(--dw)*.7)}
+  .deck .cnt{bottom:auto;top:auto;left:auto;right:calc(var(--dw)*-.28);top:calc(var(--dw)*1.18);transform:rotate(5deg)}
+  .cell-t{top:13%}.cell-b{top:87.5%}.cell-c{top:47%}
+  .pile .mat{opacity:1}
+  .drawn .newnote{left:auto;right:-4px;top:-16px;transform:rotate(7deg);z-index:9}
+  .drawn .newnote svg{display:none}
+}
+@media (max-width:640px){
+  .deck::before,.pile .stack::before{content:"";position:absolute;inset:-10px -8px;z-index:-1}
+}
+@media (max-height:480px) and (orientation:landscape){
+  .slip{min-width:0!important;max-width:min(44vw,calc(100vw - 260px))}
+  .ring-seats{--dw:clamp(46px,24cqh,60px)}
+  .deck{--cw:var(--dw);--bw:var(--dw);width:var(--dw);height:calc(var(--dw)*1.4);left:calc(50% - var(--dw)/2);top:calc(50% - var(--dw)*.7)}
+  .pile .mat{opacity:1}
+}
 </style>
 
 <body>
@@ -957,6 +1014,7 @@ button.card{cursor:pointer}
         <button class="ibtn" data-act="mute" id="btnMute" aria-pressed="true" aria-label="Sounds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2v1.6"/><path d="M7 15.6c.2-4.4.6-9.4 5-9.6 4.4.2 4.8 5.2 5 9.6l1.8 2H5.2z"/><path d="M10.4 19.6c.4 1.2 2.8 1.2 3.2 0"/><path class="on-only" d="M20 6.6c1 1.4 1.3 3 1 4.6M4 6.6c-1 1.4-1.3 3-1 4.6"/><path class="off-only" d="M4 4l16 16"/></svg><span class="w">sound</span><span class="tip" id="tipMute">Sounds on</span></button>
         <button class="ibtn" data-act="music" id="btnMusic" aria-pressed="true" aria-label="Music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.6 2.6l-.4 13.6"/><path d="M12.2 4.2l2.6.4M12.2 6.6l2.6.4"/><path d="M8.6 16.8c0-2 2-3.2 4.6-3.2s4.4 1.2 4.4 3.2-1.8 3.4-4.4 3.4-4.6-1.4-4.6-3.4z"/><path d="M4 14.6c6 1.6 12 2.2 17.4 1.8" opacity=".75"/></svg><span class="w">music</span><span class="tip" id="tipMusic">Music on</span></button>
         <button class="ibtn" data-act="quit" aria-label="Leave the table (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9.4c.2-1.8 3.2-2.8 7-2.8s6.8 1 7 2.8c-.2 1.8-3.2 2.6-7 2.6S5.2 11.2 5 9.4z"/><path d="M6.4 11.2L5 20.4M17.6 11.2l1.4 9.2M10 12l-.6 7M14 12l.6 7M5.8 16.6h12.4"/></svg><span class="w">leave</span><span class="tip">Leave<span class="k">Esc</span></span></button>
+        <button class="ibtn menutag" data-act="tools" aria-expanded="false" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 7.2c4.8-.6 9.8-.5 14.8.2"/><path d="M4.4 12.2c5-.4 10-.3 15 .1"/><path d="M4.8 17.1c4.6-.5 9.4-.4 14.4.3"/></svg><span class="w">menu</span></button>
       </div>
     </header>
     <div class="slipwrap"><div class="slip paper lift" aria-live="polite"><i class="pin" aria-hidden="true"></i><div class="msg" id="msg"></div><div class="log" id="log"></div><div class="fuse" id="bar" aria-hidden="true"><i></i></div></div></div>
@@ -2148,7 +2206,7 @@ function fitPot(){
   s.setAttribute('viewBox',`0 0 ${W} ${H}`);
   const pad=(b,m)=>({l:b.l-m,r:b.r+m,t:b.t-m,b:b.b+m});
   /* keep garnish off what you read or touch: boxes of the visible pieces themselves, not their (full-width) layout rows */
-  const avoid=[...document.querySelectorAll('#game .hud *,#game .slip,#game .opp *,#me *,#felt .pile,#felt .deck')].filter(x=>!(x.parentElement&&x.parentElement.closest('svg'))).map(rel).filter(b=>b.r-b.l>2&&b.b-b.t>2&&b.r-b.l<W*.6&&b.b-b.t<H*.45).map(b=>pad(b,14));
+  const avoid=[...document.querySelectorAll('#game .hud *,#game .slip,#game .opp *,#me *,#felt .pile,#felt .deck')].filter(x=>!(x.parentElement&&x.parentElement.closest('svg'))&&getComputedStyle(x).visibility!=='hidden').map(rel).filter(b=>b.r-b.l>2&&b.b-b.t>2&&b.r-b.l<W*.6&&b.b-b.t<H*.45).map(b=>pad(b,14));
   s.innerHTML=bigPotSVG(W,H,{cx,cy,rx,ry,wx,wy,wrx,wry,dirs,avoid});
   const la=-.72;s._g={cx,cy,rx,ry,wx,wy,wrx,wry,lx:wx+Math.cos(la)*wrx*.74,ly:wy+Math.sin(la)*wry*.74};
   const ang=dirs.map(([x,y])=>Math.atan2(y-wy,x-wx));let span=ang[1]-ang[0];if(span<0)span+=Math.PI*2;
@@ -2762,6 +2820,14 @@ function selectCard(id){
   G.sel=id;sfx.select();renderMe();$('#msg').innerHTML=slipText();
 }
 let suppressClick=false;
+/* phones: the toolbar folds into one tag; tap it and the rest drop down on their strings */
+function toolsMenu(on){
+  const t=$('.tools'),b=$('.menutag');if(!t||!b)return;
+  on=on??!t.classList.contains('open');if(on===t.classList.contains('open'))return;
+  t.classList.toggle('open',on);b.setAttribute('aria-expanded',on);
+  if(on){sfx.select();if(!RM.matches)b.animate([{transform:'rotate(-2deg)'},{transform:'rotate(7deg)',offset:.3},{transform:'rotate(-4deg)',offset:.65},{transform:'rotate(-2deg)'}],{duration:620,easing:'ease-out'})}
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.tools'))toolsMenu(false)},true);
 document.addEventListener('click',e=>{
   if(suppressClick){suppressClick=false;return}
   const diffB=e.target.closest('[data-diff]');
@@ -2788,9 +2854,10 @@ document.addEventListener('click',e=>{
     case'olstart':net.send({t:'start'});break;
     case'oldiff':net.send({t:'diff',diff:b.dataset.d});break;
     case'close':closeModal();break;
-    case'discards':if(G&&!modal)discardsModal();break;
+    case'tools':toolsMenu();break;
+    case'discards':toolsMenu(false);if(G&&!modal)discardsModal();break;
     case'handview':if(G&&!modal)handModal();break;
-    case'help':if(!modal)helpModal();break;
+    case'help':toolsMenu(false);if(!modal)helpModal();break;
     case'helptab':closeModal();helpModal(b.dataset.tab);break;
     case'credits':if(!modal)creditsModal();break;
     case'look':if(!modal)lookModal();break;
@@ -2798,7 +2865,7 @@ document.addEventListener('click',e=>{
     case'lookmark':{const o=lookNow(),c=b.dataset.v;o.marks=o.marks.includes(c)?o.marks.replace(c,''):o.marks+c;setLook(o);break}
     case'looktab':lookTab=b.dataset.tab;{const bd=$('#lookbody');if(bd)bd.innerHTML=lookBody()}break;
     case'lookrand':setLook(lookShuffle());break;
-    case'quit':if(G&&!modal&&!G.over)quitModal();break;
+    case'quit':toolsMenu(false);if(G&&!modal&&!G.over)quitModal();break;
     case'helper':helper=!helper;store.set('helper',helper);G&&renderMe();break;
     case'mute':setSound(!sndOn);break;
     case'music':setMusic(!musOn);break;
@@ -2813,6 +2880,7 @@ document.addEventListener('keydown',e=>{
   if(e.metaKey||e.ctrlKey||e.altKey)return;
   if(e.target.matches&&e.target.matches('input'))return;
   const k=e.key.toLowerCase();
+  if(k==='escape'&&$('.tools.open')){toolsMenu(false);return}
   if(k==='escape'){ if(modal&&modal!=='results'){closeModal()} else if(G&&!G.over&&!modal)quitModal(); return}
   if(!G||$('#game').hidden){ if(k==='t'&&!modal)helpModal(); return }
   if(modal)return;
