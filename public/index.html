@@ -839,6 +839,13 @@ button.card{cursor:pointer}
   .pile .cnt{right:calc(var(--pw)*-.62);bottom:calc(var(--pw)*-.3)}
 }
 .chili small{white-space:nowrap}
+.pile.self .pname{display:flex}
+.catrow .lbl i{display:none}
+@media (max-width:640px){
+  .pile.take .pname::after{content:"take it";font-size:12px!important;padding:2px 7px 1px}
+  .slip .msg{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .slip{min-height:62px;box-sizing:border-box}
+}
 .billsub[style*="left"]{text-wrap:pretty}
 .hand .card .thread{transition:opacity .15s}.hand .card.sel .thread{opacity:0}
 @media (max-width:640px){
@@ -2009,7 +2016,7 @@ function pileHTML(seat){
   }).join('');
   const tag=canTake||mine?'button':'div';
   const act=canTake?`data-act="takepile" data-seat="${seat}"`:mine?'data-act="mypile"':'data-act="discards"';
-  return `<${tag} ${tag==='button'?'type="button"':''} ${act} class="pile ${canTake?'take':''} ${mine?'mine':''}" style="--pc:${p.color};--mr:${[-2,3,-3,2][seat]}deg" aria-label="${canTake?'Take from ':''}${seat===0?'your':esc(p.name)+"'s"} discard pile, ${n} card${n===1?'':'s'}${n?', '+nameOf(p.discards.at(-1).t)+' on top':''}">
+  return `<${tag} ${tag==='button'?'type="button"':''} ${act} class="pile ${canTake?'take':''} ${mine?'mine':''} ${seat===0?'self':''}" style="--pc:${p.color};--mr:${[-2,3,-3,2][seat]}deg" aria-label="${canTake?'Take from ':''}${seat===0?'your':esc(p.name)+"'s"} discard pile, ${n} card${n===1?'':'s'}${n?', '+nameOf(p.discards.at(-1).t)+' on top':''}">
     <span class="stack"><i class="mat"></i>${cards}${n>1?`<span class="cnt">${n}</span>`:''}</span>
     <span class="pname"><i></i>${seat===0?'your pile':esc(p.name)}</span>${seat===0?'<span class="hint">drop it here</span>':''}</${tag}>`;
 }
@@ -2025,8 +2032,8 @@ function oppHTML(seat){
 }
 const bowl=on=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 11.2h17.2c-.3 4.9-3.8 8.1-8.6 8.1s-8.3-3.2-8.6-8.1z" fill="${on?'#86c06e':'rgba(255,240,215,.08)'}" stroke="#f1dcb8" stroke-width="1.5" stroke-linejoin="round"/>${on?'<path d="M9 8.6c-.9-1.2.9-1.8 0-3.2M12.6 8.6c-.9-1.2.9-1.8 0-3.2M16 8.6c-.9-1.2.9-1.8 0-3.2" fill="none" stroke="#f1dcb8" stroke-width="1.3" stroke-linecap="round"/>':''}</svg>`;
 function slipText(){
-  if(G.over)return G.winner==null?'The pot ran dry':G.winner===0?'<em>Hotpot!</em> You did it':`${esc(G.players[G.winner].name)} called hotpot`;
-  if(G.turn===0&&!HP.autoHuman)return G.phase==='draw'?'Your turn! Draw from the <em>pot</em> or a pile':G.sel!=null?`Toss <em>${nameOf(G.players[0].hand.find(c=>c.id===G.sel).t)}</em>? Tap again, or drag it to your pile`:'Now pick one card to <em>toss back</em>';
+  if(G.over)return G.winner==null?'Round over':G.winner===0?'<em>Hotpot!</em> You did it':`${esc(G.players[G.winner].name)} called hotpot`;
+  if(G.turn===0&&!HP.autoHuman)return G.phase==='draw'?'Your turn! Draw from the <em>pot</em> or a pile':G.sel!=null?`Toss <em>${nameOf(G.players[0].hand.find(c=>c.id===G.sel).t)}</em>? Tap ${innerWidth<640?'it again':'again, or drag it to your pile'}`:'Now pick one card to <em>toss back</em>';
   return `${esc(G.players[G.turn].name)} is choosing…`;
 }
 function render(){
