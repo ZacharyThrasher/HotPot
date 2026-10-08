@@ -588,6 +588,7 @@ button.card{cursor:pointer}
 
 /* the great pot, seen from above */
 #bigpot{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
+#broth{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
 #bigpot .bit{animation:drift var(--bd,9s) ease-in-out infinite;animation-delay:var(--bdl,0s)}
 @keyframes drift{50%{transform:translate(var(--bx,4px),var(--by,3px))}}
 .pot{width:calc(var(--pw)*3);aspect-ratio:1;border-radius:50%}
@@ -936,6 +937,21 @@ button.card{cursor:pointer}
 @keyframes pawrise{0%{opacity:0;transform:translateY(0) scale(.7) rotate(-8deg)}20%{opacity:.85}100%{opacity:0;transform:translateY(-70px) scale(1.15) rotate(10deg)}}
 #game.moment-on #cats{opacity:.45;transition:opacity .5s}
 @media (prefers-reduced-motion:reduce){.cat *,.cat .catsvg{animation:none!important}}
+
+/* cards as objects: a cream paper edge under each card, a sheen that slides as the card tilts, shadows that grow with height */
+.card{filter:drop-shadow(0 1.6px 0 #d9c49e) drop-shadow(0 1px 0 rgba(60,30,10,.5)) drop-shadow(0 5px 6px rgba(10,5,10,.35))}
+.card.sel{filter:drop-shadow(0 1.6px 0 #d9c49e) drop-shadow(0 0 3px var(--lamp)) drop-shadow(0 0 14px rgba(255,200,110,.8)) drop-shadow(0 16px 16px rgba(0,0,0,.42))}
+.card::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(112deg,transparent 33%,rgba(255,253,245,.34) 45%,rgba(255,250,236,.1) 53%,rgba(90,50,20,.06) 60%,transparent 68%) var(--shx,40%) 0/300% 100% no-repeat;
+  mix-blend-mode:normal;opacity:.75;transition:background-position .35s ease-out;
+  -webkit-mask:var(--cm,var(--rough-c1)) 0 0/100% 100% no-repeat;mask:var(--cm,var(--rough-c1)) 0 0/100% 100% no-repeat}
+.card[data-v="1"]{--shx:70%}.card[data-v="2"]{--shx:95%}
+.hand{perspective:900px}
+.hand .card{rotate:var(--tilt,0 0 1 0deg);transition:transform .22s cubic-bezier(.3,1.4,.5,1),rotate .25s ease-out,filter .22s}
+.hand .card.tilting{transition:transform .22s cubic-bezier(.3,1.4,.5,1),rotate .06s linear,filter .22s}
+.hand .card.tilting::after{transition:none}
+@media (hover:hover){.hand .card:not(.sel):hover{filter:drop-shadow(0 1.6px 0 #d9c49e) drop-shadow(0 1px 0 rgba(60,30,10,.45)) drop-shadow(0 14px 12px rgba(10,5,10,.32))}}
+@media (prefers-reduced-motion:reduce){.hand .card{rotate:none}}
 </style>
 
 <body>
@@ -1671,6 +1687,118 @@ function petCat(el){
   for(let i=0;i<3;i++){const f=document.createElement('div');f.className='paw-steam';f.style.left=(38+i*9+rnd(-3,3))+'%';f.style.animationDelay=(i*.35)+'s';f.innerHTML='<svg viewBox="0 0 24 24"><ellipse cx="12" cy="15" rx="5" ry="4.2"/><circle cx="6.4" cy="9" r="2.1"/><circle cx="10.2" cy="6.2" r="2.1"/><circle cx="14" cy="6.2" r="2.1"/><circle cx="17.6" cy="9" r="2.1"/></svg>';p.appendChild(f);setTimeout(()=>f.remove(),4200)}
 }
 
+/* =============================== LIVING BROTH (WebGL) =============================== */
+/* One small fragment shader laid over the painted pot: a slow sheen that swirls round the well, chili-oil
+   beads drifting, gentle boils on the spicy side, a ring where you touch, and warm light that falls off to
+   the rim. If WebGL isn't there (or the device is too slow for it) the painted SVG pot is all you see. */
+const BROTH_FS=`precision mediump float;
+uniform vec2 R;uniform float K,T;uniform vec4 P,Wl;uniform vec3 Tap;uniform vec2 Sp;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+vec2 h2(vec2 p){return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+  return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+vec4 over(vec4 c,vec3 col,float a){return vec4(col*a+c.rgb*(1.-a),a+c.a*(1.-a));}
+void main(){
+  vec2 p=vec2(gl_FragCoord.x,R.y-gl_FragCoord.y)/K;
+  vec2 sz=R/K;
+  float e=length((p-P.xy)/P.zw);
+  vec2 dw=p-Wl.xy;float w=length(dw/Wl.zw);
+  vec4 c=vec4(0.);
+  if(e<1.){
+    /* the broth turns slowly round the well, faster near it */
+    float sw=T*.05/(.6+w*.5);float cs=cos(sw),sn=sin(sw);
+    vec2 q=Wl.xy+mat2(cs,-sn,sn,cs)*dw;
+    vec2 u=q/150.;
+    vec2 wp=vec2(n(u+T*.031),n(u+vec2(5.2,1.3)-T*.027));
+    float v=n(u*1.7+wp*2.2+T*.018);
+    float inBroth=smoothstep(.98,.9,e)*smoothstep(1.,1.12,w);
+    c=over(c,vec3(1.,.95,.82),smoothstep(.6,.82,v)*.13*inBroth);
+    c=over(c,vec3(.12,.05,.02),smoothstep(.36,.14,v)*.10*inBroth);
+    /* is this point on the spicy side? */
+    float a=atan(dw.y,dw.x);float rel=mod(a-Sp.x,6.2832);float spicy=step(rel,Sp.y)*smoothstep(0.,.25,rel)*smoothstep(Sp.y,Sp.y-.25,rel);
+    /* chili oil: little golden beads riding the swirl */
+    vec2 g=q/34.+vec2(T*.02,-T*.013);vec2 id=floor(g);vec2 rr=h2(id);
+    float dens=mix(.13,.62,spicy);
+    if(rr.x<dens){
+      vec2 ctr=id+.2+.6*h2(id+3.7)+.08*vec2(sin(T*.4+rr.y*6.),cos(T*.33+rr.x*6.));
+      float rad=(.07+.12*rr.y);float d=length(g-ctr);
+      float bead=smoothstep(rad,rad*.6,d)*inBroth;
+      c=over(c,vec3(.98,.66,.16),bead*.5);
+      c=over(c,vec3(1.,.95,.75),smoothstep(rad*.4,0.,length(g-ctr+vec2(rad*.35)))*inBroth*.55);
+    }
+    /* boils on the spicy side */
+    if(spicy>0.){
+      vec2 bg=q/64.;vec2 bid=floor(bg);vec2 br=h2(bid+9.1);
+      float per=3.+br.x*4.;float t=fract(T/per+br.y);
+      vec2 bc=bid+.25+.5*h2(bid+1.3);float d=length(bg-bc)*64.;
+      float r0=t*16.;
+      float ring=smoothstep(2.2,0.,abs(d-r0))*(1.-t)*step(.35,br.x);
+      float dome=smoothstep(5.,2.,d)*smoothstep(.22,.0,t)*step(.35,br.x);
+      c=over(c,vec3(1.,.86,.62),(ring*.32+dome*.25)*spicy*inBroth);
+    }
+    /* a ring where you touched */
+    float age=T-Tap.z;
+    if(age>0.&&age<1.6){float d=length(p-Tap.xy);float rr2=age*95.;
+      c=over(c,vec3(1.,.96,.86),smoothstep(3.,0.,abs(d-rr2))*(1.-age/1.6)*.35*inBroth);
+      c=over(c,vec3(1.,.96,.86),smoothstep(3.,0.,abs(d-rr2*.6))*(1.-age/1.6)*.2*inBroth);}
+    /* warm light: brighter in the middle, deeper toward the rim */
+    float glow=exp(-pow(length((p-Wl.xy)/(P.zw*.75)),2.)*2.2);
+    c=over(c,vec3(1.,.82,.5),glow*.07);
+    c=over(c,vec3(.06,.02,.01),smoothstep(.7,1.,e)*.26);
+  }
+  /* a soft vignette over everything */
+  vec2 vv=(p/sz-.5)*vec2(1.,1.15);
+  c=over(c,vec3(.04,.02,.02),smoothstep(.42,.86,length(vv))*.2);
+  gl_FragColor=c;
+}`;
+const BROTH={on:false};
+function brothInit(){
+  if(BROTH.cv||BROTH.off)return;
+  const cv=document.createElement('canvas');cv.id='broth';cv.setAttribute('aria-hidden','true');
+  const gl=cv.getContext('webgl',{premultipliedAlpha:true,antialias:false,alpha:true,powerPreference:'low-power'});
+  if(!gl){BROTH.off=1;return}
+  const sh=(t,src)=>{const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);return gl.getShaderParameter(s,gl.COMPILE_STATUS)?s:null};
+  const vs=sh(gl.VERTEX_SHADER,'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}'),fs=sh(gl.FRAGMENT_SHADER,BROTH_FS);
+  if(!vs||!fs){BROTH.off=1;return}
+  const pr=gl.createProgram();gl.attachShader(pr,vs);gl.attachShader(pr,fs);gl.linkProgram(pr);
+  if(!gl.getProgramParameter(pr,gl.LINK_STATUS)){BROTH.off=1;return}
+  gl.useProgram(pr);
+  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const al=gl.getAttribLocation(pr,'a');gl.enableVertexAttribArray(al);gl.vertexAttribPointer(al,2,gl.FLOAT,false,0,0);
+  const U={};['R','K','T','P','Wl','Tap','Sp'].forEach(k=>U[k]=gl.getUniformLocation(pr,k));
+  cv.addEventListener('webglcontextlost',e=>{e.preventDefault();BROTH.off=1;BROTH.on=false;cv.remove()});
+  Object.assign(BROTH,{cv,gl,U,k:1,t0:performance.now(),tap:[0,0,-9],slow:0,n:0,acc:0});
+  $('#bigpot').after(cv);
+}
+function brothFit(g,W,H,sp){
+  brothInit();if(BROTH.off||!BROTH.cv)return;
+  const {cv,gl,U}=BROTH,k=BROTH.k*(W*H>9e5?.75:1);
+  cv.width=Math.round(W*k);cv.height=Math.round(H*k);gl.viewport(0,0,cv.width,cv.height);
+  gl.uniform2f(U.R,cv.width,cv.height);gl.uniform1f(U.K,k);
+  gl.uniform4f(U.P,g.cx,g.cy,g.rx,g.ry);gl.uniform4f(U.Wl,g.wx,g.wy,g.wrx,g.wry);
+  gl.uniform2f(U.Sp,sp[0],sp[1]);
+  BROTH.on=true;brothDraw(performance.now());
+  if(!BROTH.raf)BROTH.raf=requestAnimationFrame(brothLoop);
+}
+function brothDraw(now){
+  const {gl,U}=BROTH;
+  gl.uniform1f(U.T,RM.matches?12:(now-BROTH.t0)/1000);
+  gl.uniform3f(U.Tap,BROTH.tap[0],BROTH.tap[1],BROTH.tap[2]);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+}
+/* about 30 frames a second; paused when the table isn't showing; if frames run slow it drops resolution once, then gives up */
+function brothLoop(now){
+  BROTH.raf=requestAnimationFrame(brothLoop);
+  if(!BROTH.on||BROTH.off||document.hidden||RM.matches||$('#game').hidden)return;
+  if(now-(BROTH.last||0)<31)return;
+  BROTH.last=now;
+  const t1=performance.now();brothDraw(now);BROTH.gl.finish&&BROTH.n<90&&BROTH.gl.finish();
+  if(BROTH.n<90){BROTH.acc+=performance.now()-t1;BROTH.n++;
+    if(BROTH.n===90){const avg=BROTH.acc/90;
+      if(avg>9){if(BROTH.k>.5){BROTH.k=.5;BROTH.n=0;BROTH.acc=0;const s=$('#bigpot');s._k=null;fitPot()}else{BROTH.off=1;BROTH.cv.remove();cancelAnimationFrame(BROTH.raf)}}}}
+}
+function brothTap(x,y){if(BROTH.on)BROTH.tap=[x,y,(performance.now()-BROTH.t0)/1000]}
+
 /* =============================== SOUND =============================== */
 /* Everything is synthesised: plucked strings (Karplus-Strong), paper rustles from filtered noise,
    bubbles from tiny pitch sweeps, all through a soft room reverb. Nothing loud, nothing beepy. */
@@ -1983,6 +2111,8 @@ function fitPot(){
   /* the cats keep clear of everything you read or touch: boxes of the real visible pieces, not their layout rows */
   const keep=[...document.querySelectorAll('#game .hud *,#game .slip,#game .opp *,#me *,#felt *')].filter(x=>!(x.parentElement&&x.parentElement.closest('svg'))).map(x=>rel(x)).filter(b=>b.r-b.l>2&&b.b-b.t>2&&b.r-b.l<W*.6&&b.b-b.t<H*.45).map(b=>pad(b,10));
   placeCats(s._g,keep,W,H);
+  const ang=dirs.map(([x,y])=>Math.atan2(y-wy,x-wx));let span=ang[1]-ang[0];if(span<0)span+=Math.PI*2;
+  brothFit(s._g,W,H,[ang[0],span]);
 }
 function buildPot(){
   const p=$('#pot');if(p.childElementCount)return;
@@ -2007,6 +2137,7 @@ function touchTable(e){
   const s=$('#bigpot'),g=s&&s._g,gr=$('#game').getBoundingClientRect();if(!g)return false;
   const x=e.clientX-gr.left,y=e.clientY-gr.top;
   if(((x-g.cx)/g.rx)**2+((y-g.cy)/g.ry)**2>1)return false;
+  brothTap(x,y);
   const still=RM.matches;
   if(Math.hypot((x-g.lx)/1.2,y-g.ly)<34){
     sfx.ladle();
@@ -2659,6 +2790,18 @@ document.addEventListener('pointermove',e=>{
   el.style.setProperty('--tx',(x*6).toFixed(1)+'deg');
 },{passive:true});
 let rz=null;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{drawScene();fitTable()},120)});
+
+/* a card under the pointer tilts toward it and its sheen slides */
+let tiltEl=null;
+document.addEventListener('pointermove',e=>{
+  if(e.pointerType!=='mouse'||RM.matches)return;
+  const c=e.target.closest&&e.target.closest('.hand .card');
+  if(tiltEl&&tiltEl!==c){tiltEl.classList.remove('tilting');tiltEl.style.removeProperty('--tilt');tiltEl.style.removeProperty('--shx');tiltEl=null}
+  if(!c)return;
+  const r=c.getBoundingClientRect(),dx=(e.clientX-r.left)/r.width*2-1,dy=(e.clientY-r.top)/r.height*2-1;
+  c.classList.add('tilting');c.style.setProperty('--tilt',`${(-dy*.5).toFixed(2)} ${dx.toFixed(2)} 0 ${(Math.min(1,Math.hypot(dx,dy))*9).toFixed(1)}deg`);
+  c.style.setProperty('--shx',(100-(dx+1)*50).toFixed(0)+'%');tiltEl=c;
+},{passive:true});
 
 /* =============================== ONLINE (invite-link tables) =============================== */
 const SEAT_COLORS=['#4a7fb5','#a8506a','#3d7660','#66549e','#b5832f','#3f8f8a'];
