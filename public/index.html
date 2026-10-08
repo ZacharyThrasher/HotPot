@@ -1394,7 +1394,7 @@ const skyLanternSVG=()=>`<svg viewBox="0 0 40 56"><path d="M5 9C5 4 12 2 20 2s15
 /* Everyone at the table gets a small painted portrait. The three regulars each have their own look and one
    detail; anyone else (online friends) is put together from the same kit, seeded by their name so it never changes. */
 /* the kit: the same lists are checked by the server (src/looks.js) before a look is passed to other players */
-const LOOK_OPTS={"skin":["#fbe4d6","#f7d7c4","#f4d0b5","#f0c8a4","#eec19a","#e6b58e","#ddb088","#d9a77c","#cf9a6e","#c89066","#bd8459","#b07a54","#a26c47","#94603f","#87563a","#784a32","#6b412c","#5e3826","#503021","#43281c","#38221a","#2d1c15"],"hair":["#120c0a","#241713","#36231a","#4c3022","#64402a","#7d4b2c","#8e3a22","#b5532b","#cf7a45","#9c7a4c","#c9a063","#e2c690","#efe3c4","#6e6a66","#9b9894","#c8c6c3","#f1eee8","#e48aa8","#9f80d8","#4f7fd0","#3a9e94","#7bae4f","#c8304a"],"style":["bald","buzz","lineup","caesar","taper","crop","undercut","waves","wavefade","curltop","sponge","short","side","quiff","bob","lob","long","wavy","curls","coils","afro","puff","puffs","locs","locsfade","locslong","braids","cornrows","twists","bantu","bun","topknot","ponytail","pigtails","hijab","wrap"],"beard":["none","stubble","moustache","goatee","short","full"],"glasses":["none","round","square","cateye","half","shades"],"marks":"bfglmv","pierce":["none","studs","hoops","drops","cuff","nosestud","septum"],"acc":["none","clip","flower","headband","bow","beads","sticks"],"hat":["none","beanie","cap","bucket","headphones"]};
+const LOOK_OPTS={"skin":["#fbe4d6","#f7d7c4","#f4d0b5","#f0c8a4","#eec19a","#e6b58e","#ddb088","#d9a77c","#cf9a6e","#c89066","#bd8459","#b07a54","#a26c47","#94603f","#87563a","#784a32","#6b412c","#5e3826","#503021","#43281c","#38221a","#2d1c15"],"hair":["#120c0a","#241713","#36231a","#4c3022","#64402a","#7d4b2c","#8e3a22","#b5532b","#cf7a45","#9c7a4c","#c9a063","#e2c690","#efe3c4","#6e6a66","#9b9894","#c8c6c3","#f1eee8","#e48aa8","#9f80d8","#4f7fd0","#3a9e94","#7bae4f","#c8304a"],"style":["bald","receding","buzz","lineup","caesar","taper","crop","undercut","waves","wavefade","curltop","sponge","short","spiky","messy","side","slick","quiff","mullet","pixie","bob","lob","shag","long","longside","curtain","halfup","sidebraid","wavy","curls","coils","afro","puff","puffs","locs","locsfade","locslong","braids","cornrows","twists","bantu","bun","topknot","ponytail","pigtails","hijab","wrap"],"beard":["none","stubble","moustache","goatee","short","full"],"glasses":["none","round","square","cateye","half","shades"],"marks":"bfglmv","pierce":["none","studs","hoops","drops","cuff","nosestud","septum"],"acc":["none","clip","flower","headband","bow","beads","sticks"],"hat":["none","beanie","cap","bucket","headphones"]};
 const SKIN=LOOK_OPTS.skin,HAIR=LOOK_OPTS.hair,STYLES=LOOK_OPTS.style;
 /* a hijab or head wrap is cloth, so the colour pick gives it a fabric shade instead (same slot, so the server list is unchanged) */
 const FABRIC=['#f3ead8','#fbfaf6','#1d1a1c','#4a4547','#9a9692','#273a5e','#86a9cf','#2f7f7a','#93a98a','#6d7342','#2e6b4b','#d8a63a','#efb79a','#e07a63','#b5583a','#7a2235','#c98a8f','#f0c4cc','#b9a3d6','#5c2f5a','#5a3726','#c39563','#dcc7a6'];
@@ -1448,10 +1448,10 @@ function faceSVG(f,seed){
   switch(f.style){
     case'bob':
       back=`<path d="M18.2 45C14.6 31 19 19.2 32 19.2S49.4 31 45.8 45C44.2 47.2 41.6 46.6 41.8 43.6L42 33H22l.2 10.6C22.4 46.6 19.8 47.2 18.2 45z" fill="${H}" ${hl}/>`;
-      front=`<path d="M19.4 35C18.4 24.6 24.2 19.6 32.2 19.6S45.8 24.4 44.8 34.6C43.4 29.6 39.6 26.4 34.6 25.8 31.2 28.6 25.4 29.8 19.4 35z" fill="${H}" ${hl}/><path d="M24 24.4c2.6-1.6 5.6-2.2 8.6-1.8" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.4" stroke-linecap="round"/>`;break;
+      front=`<path d="M19.4 35C18.6 24.6 24.2 19.6 32.2 19.6S45.8 24.4 44.8 35C44.4 31.6 43.8 30.2 43 29.6 37.8 30.6 26.4 30.6 21.2 29.6 20.4 30.2 19.8 31.6 19.4 35z" fill="${H}" ${hl}/><path d="M24 24.4c2.6-1.6 5.6-2.2 8.6-1.8" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.4" stroke-linecap="round"/><path d="M24 29.6v.8M28 29.9v.8M32 30v.8M36 29.9v.8M40 29.6v.8" stroke="${ink}" stroke-opacity=".3" stroke-width=".6"/>`;break;
     case'long':
       back=`<path d="M17.4 60C13.2 42 16 19.4 32 19.4S50.8 42 46.6 60C42 62 22 62 17.4 60z" fill="${H}" ${hl}/>`;
-      front=`<path d="M19.4 36C18.6 24.8 24.4 19.8 32 19.8S45.4 24.8 44.6 36C43 30.4 40.2 27.4 36.6 26.2 33 28 30.6 27.6 28.6 26.4 24.4 28.2 21.2 31.4 19.4 36z" fill="${H}" ${hl}/>`;break;
+      front=`<path d="M19.4 37C18.6 24.6 24.2 19.6 32.2 19.6S45.8 24.4 44.8 37C44.4 33 43.8 30.8 43 30 37.8 31 26.4 31 21.2 30 20.4 30.8 19.8 33 19.4 37z" fill="${H}" ${hl}/><path d="M24 30v.8M28 30.3v.8M32 30.4v.8M36 30.3v.8M40 30v.8" stroke="${ink}" stroke-opacity=".3" stroke-width=".6"/>`;break;
     case'short':
       front=`<path d="M19.6 33.4C18.6 23.4 24.6 19.2 32 19.2S45.6 23.2 44.6 33.4C43.4 28.2 40.4 25.2 36.4 24.8 34.6 26.8 29.6 27.2 26.8 25.2 23.6 26.4 21 29.4 19.6 33.4z" fill="${H}" ${hl}/>`;break;
     case'bun':
@@ -1491,13 +1491,42 @@ function faceSVG(f,seed){
     case'locsfade':{
       let l='';[[24.6,-2.4],[27.6,-1.6],[30.6,-.6],[33.6,.6],[36.6,1.6],[39.6,2.4]].forEach(([x,d],i)=>{l+=`<path d="M${x} 16.6Q${f1(x+d*1.4)} 20 ${f1(x+d*2.2)} ${f1(25.6+(i%2)*1.2)}" fill="none" stroke="${H}" stroke-width="3.4" stroke-linecap="round"/><path d="M${x} 16.6Q${f1(x+d*1.4)} 20 ${f1(x+d*2.2)} ${f1(25.6+(i%2)*1.2)}" fill="none" stroke="${ink}" stroke-opacity=".3" stroke-width="2.4" stroke-dasharray="1.4 1"/>`});
       front=`${FADE}<path d="M22.4 26.6C22 19.6 26.4 15.4 32 15.4S42 19.6 41.6 26.6z" fill="${H}" ${hl}/>${l}`;break}
+    case'pixie':
+      front=`<path d="M20.2 32.6C19.4 23.6 25 19.2 32 19.2S44.8 23 44 31C43 28.2 41.2 26.8 39 26.4 34.6 27.2 28.6 28.8 23.8 31.6 22.6 31.8 21.4 32.2 20.2 32.6z" fill="${H}" ${hl}/><path d="M20.4 32.4l.6 3.4M43.8 31l-.4 3.2" stroke="${H}" stroke-width="1.6" stroke-linecap="round"/><path d="M27 23.6c3.6-1.8 8-1.6 11 .6" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2" stroke-linecap="round"/>`;break;
+    case'shag':
+      back=`<path d="M16.8 46.4L18.6 43.6 18 47.4 20.6 44.4 21 33H43L43.4 44.4 46 47.4 45.4 43.6 47.2 46.4C49.6 38 48.4 19.4 32 19.4S14.4 38 16.8 46.4z" fill="${H}" ${hl}/>`;
+      front=`<path d="M19.2 36C18.4 24.6 24.4 19.6 32 19.6S45.6 24.6 44.8 36C44 31.6 42 28.8 38.6 27.6 36 27 33.6 25.4 32 24.2 30.4 25.4 28 27 25.4 27.6 22 28.8 20 31.6 19.2 36z" fill="${H}" ${hl}/><path d="M19.6 36.4l-1 3.4M44.4 36.4l1 3.4M21 31.6l-.6 3M43 31.6l.6 3" stroke="${H}" stroke-width="1.6" stroke-linecap="round"/>`;break;
+    case'curtain':
+      back=`<path d="M17.4 60C13.2 42 16 19.4 32 19.4S50.8 42 46.6 60C42 62 22 62 17.4 60z" fill="${H}" ${hl}/>`;
+      front=`<path d="M19.2 40C18.2 25 24.4 19.6 32 19.6S45.8 25 44.8 40C44 34 42.4 30 39.4 28.4 36.6 27 33.4 25.6 32 23.8 30.6 25.6 27.4 27 24.6 28.4 21.6 30 20 34 19.2 40z" fill="${H}" ${hl}/><path d="M32 20.2v3.4" stroke="${ink}" stroke-opacity=".35" stroke-width=".8"/>`;break;
+    case'longside':
+      back=`<path d="M17.4 60C13.2 42 16 19.4 32 19.4S50.8 42 46.6 60C42 62 22 62 17.4 60z" fill="${H}" ${hl}/>`;
+      front=`<path d="M19.4 38C18.4 26 22.4 20 27.6 19.6 36 19 46 23 44.8 37 43.6 31.4 41 27.6 36.6 26.4 32.4 25.2 28.6 24.4 26.8 22.4 24.2 25.6 21 30.4 19.4 38z" fill="${H}" ${hl}/><path d="M29.4 22.2c3.4-.6 7.4.2 10.4 2.4" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2" stroke-linecap="round"/>`;break;
+    case'halfup':
+      back=`<path d="M17.4 60C13.2 42 16 19.4 32 19.4S50.8 42 46.6 60C42 62 22 62 17.4 60z" fill="${H}" ${hl}/><circle cx="32" cy="16.2" r="4.4" fill="${H}" ${hl}/>`;
+      front=`<path d="M19.4 36C18.6 24.8 24.4 19.8 32 19.8S45.4 24.8 44.6 36C43 30.4 40.2 27.4 36.6 26.2 33 27 30.6 27 28.6 26.4 24.4 28.2 21.2 31.4 19.4 36z" fill="${H}" ${hl}/><path d="M29.4 19.4c1.6.8 3.6.8 5.2 0" stroke="${ACC}" stroke-width="1.8" stroke-linecap="round"/>`;break;
+    case'sidebraid':{
+      let b='';for(let k=0;k<8;k++){const y=36+k*3.2,x=20.6-k*.45;b+=`<ellipse cx="${f1(x+(k%2?.7:-.7))}" cy="${f1(y)}" rx="${(2.6-k*.1).toFixed(2)}" ry="2.1" transform="rotate(${k%2?-24:24} ${f1(x)} ${f1(y)})" fill="${H}" ${hl}/>`}
+      front=`<path d="M19.4 35C18.6 24.6 24.2 19.4 32 19.4S45.8 24.6 44.6 34C43.2 29.6 40.6 26.8 36.8 26 31.4 25.6 25.4 28.4 19.4 35z" fill="${H}" ${hl}/>${b}<path d="M17.4 61.4l2.6 1.6" stroke="${ACC}" stroke-width="2" stroke-linecap="round"/>`;break}
+    case'slick':
+      front=`<path d="M20.4 31C19.8 23.6 24 18.4 32 18.4S44.2 23.6 43.6 31C42.6 26.6 40 24 36.4 23.4 33.6 23 30.4 23 27.6 23.4 24 24 21.4 26.6 20.4 31z" fill="${H}" ${hl}/><g fill="none" stroke="#fff" stroke-opacity=".26" stroke-width=".8" stroke-linecap="round"><path d="M25.6 23.8q2.2-3.2 6.6-4.4M29.8 23.2q2.4-2.8 7.4-3.2M34.6 23.2q2.6-2 6.4-1"/></g>`;break;
+    case'spiky':
+      front=`<path d="M20 31.4C19.6 26 21 22.6 22.8 21L22.4 16.6 25.6 19.6 26.6 14.8 29.4 18.6 31.6 13.8 33.6 18.4 36.6 14.6 37.6 19.2 41 16.6 41 21C43 22.6 44.4 26 44 31.4 42 27.6 37.6 25.8 32 25.8S22 27.6 20 31.4z" fill="${H}" ${hl}/>`;break;
+    case'receding':
+      front=`<path d="M19.6 34.6C19.2 30.4 19.8 27.6 21.2 26.2 22.6 26.6 23.6 27.8 23.6 29.4 23.2 31 21.4 32.4 19.6 34.6zM44.4 34.6C44.8 30.4 44.2 27.6 42.8 26.2 41.4 26.6 40.4 27.8 40.4 29.4 40.8 31 42.6 32.4 44.4 34.6z" fill="${H}" ${hl}/><path d="M29.4 22.6q1.2-1.4 2.6-.4 1.2-1.2 2.6.2" fill="none" stroke="${H}" stroke-width="1.1" stroke-linecap="round"/><path d="M26.4 25.6c3-1.8 7.6-2.2 11-1.2" fill="none" stroke="#fff" stroke-opacity=".26" stroke-width="1.4" stroke-linecap="round"/>`;break;
+    case'messy':
+      back=`<path d="M17.4 42C15.6 30 20.4 19.4 32 19.4S48.4 30 46.6 42C45 44 43.6 42.6 43.8 40L44 33H20l.2 7c.2 2.6-1.2 4-2.8 2z" fill="${H}" ${hl}/>`;
+      front=`<path d="M19.4 36C18.6 25 24.4 19.4 32 19.4S45.6 25 44.6 36C43.6 32.4 42.2 30 41.2 28.6L40 30.6 38.6 27.4 36.4 29.8 35.4 26.6 32.8 29.4 31.6 26.6 29 29.2 28 26.8 25.6 29.4 24.6 27.6C22.4 29.4 20.4 32.4 19.4 36z" fill="${H}" ${hl}/>`;break;
+    case'mullet':
+      back=`<path d="M21.4 38H42.6C44.6 43 46.4 48 48.4 53.4L45 51.6 43.6 55 40.8 51.2H23.2L20.4 55 19 51.6 15.6 53.4C17.6 48 19.4 43 21.4 38z" fill="${H}" ${hl}/>`;
+      front=`<path d="M20 31.4C19.6 26 21 22.6 22.8 21.2L23.2 18.4 26 20.2 28.2 16.8 30.4 19.6 33 16.6 34.8 19.8 37.8 17.4 38.6 20.6 41 19.6 41.2 21.2C43 22.6 44.4 26 44 31.4 42 27.6 37.6 25.8 32 25.8S22 27.6 20 31.4z" fill="${H}" ${hl}/>`;break;
     case'side':
       front=`<path d="M19.6 34C18.4 23 24.6 19 32 19S45.8 23.4 44.6 34C43.6 29 41.4 26 38 25 33 27.6 26.6 28.6 22.4 26.6 21 28.8 20 31.4 19.6 34z" fill="${H}" ${hl}/><path d="M37.6 19.8c-.6 1.8-.4 3.6.4 5" fill="none" stroke="${ink}" stroke-opacity=".35" stroke-width=".8" stroke-linecap="round"/>`;break;
     case'quiff':
       front=`<path d="${SCAP}" fill="${H}" ${hl}/><path d="M23.6 25.4C22.4 17.6 29.6 13 36 15.4 41.2 17.4 41.8 22 39.6 25.6 35.8 23.4 29.8 23.4 23.6 25.4z" fill="${H}" ${hl}/><path d="M27.4 19.6c2.4-1.8 5.4-2.2 8-1" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.2" stroke-linecap="round"/>`;break;
     case'lob':
       back=`<path d="M17.8 51C14.2 35 18.4 19.2 32 19.2S49.8 35 46.2 51C44 53 40.8 52.2 41.4 49L42 33H22l.6 16C23.2 52.2 20 53 17.8 51z" fill="${H}" ${hl}/>`;
-      front=`<path d="M19.4 35C18.4 24.6 24.2 19.6 32.2 19.6S45.8 24.4 44.8 34.6C43.4 29.6 39.6 26.4 34.6 25.8 31.2 28.6 25.4 29.8 19.4 35z" fill="${H}" ${hl}/>`;break;
+      front=`<path d="M19.4 37C18.6 25 24.4 19.6 32 19.6S45.4 25 44.6 37C43.6 31 41 26.4 36 24.6 34 24 33 23.4 32 22.6 31 23.4 30 24 28 24.6 23 26.4 20.4 31 19.4 37z" fill="${H}" ${hl}/>`;break;
     case'wavy':
       back=`<path d="M18 60c-3-3 0-6-2.6-9.4S15 43 15.6 39C13.8 26 21 19.4 32 19.4S50.2 26 48.4 39c.6 4 2.4 8.2-.2 11.6S49 57 46 60C40 62.4 24 62.4 18 60z" fill="${H}" ${hl}/>`;
       front=`<path d="M19.4 36C18.6 24.8 24.4 19.8 32 19.8S45.4 24.8 44.6 36C43.4 31 41 28 37.6 26.6 35 29.4 30.4 29.2 28 27 24.6 28.6 21.2 31.4 19.4 36z" fill="${H}" ${hl}/>`;break;
@@ -1511,12 +1540,25 @@ function faceSVG(f,seed){
       back=`<path d="${roughCircle(17.6,22.4,9,1.2,seed+3,32)}" fill="${H}" ${hl}/><path d="${roughCircle(46.4,22.4,9,1.2,seed+4,32)}" fill="${H}" ${hl}/>`;
       front=`<path d="${TCAP}" fill="${H}" ${hl}/><path d="M32 20.8v5" stroke="${ink}" stroke-opacity=".3" stroke-width=".8"/>`;break;
     case'locs':case'locslong':case'braids':case'twists':{
-      const end=f.style==='locslong'||f.style==='braids'?63:f.style==='twists'?47:53,w=f.style==='braids'?3:f.style==='twists'?3.4:4.1;
-      const xs=[16.4,18.6,20.8,43.2,45.4,47.6],pat=f.style==='braids'?'stroke-dasharray="2.2 .9"':f.style==='twists'?'stroke-dasharray="1.6 1.1"':'';
-      back=xs.map((x,i)=>`<path d="M${f1(x+(x<32?2:-2))} 30Q${f1(x)} ${f1((30+end)/2)} ${f1(x+(i%2?.8:-.8))} ${end-(i%3)*2}" fill="none" stroke="${H}" stroke-width="${w}" stroke-linecap="round"/>`+(pat?`<path d="M${f1(x+(x<32?2:-2))} 30Q${f1(x)} ${f1((30+end)/2)} ${f1(x+(i%2?.8:-.8))} ${end-(i%3)*2}" fill="none" stroke="${ink}" stroke-opacity=".35" stroke-width="${w*.75}" ${pat}/>`:'')).join('');
-      back=`<path d="M17.6 34C16.8 24 22.6 18.6 32 18.6S47.2 24 46.4 34z" fill="${H}" ${hl}/>`+back;
-      let fr='';[23.6,27.6,31.6,35.6,39.6].forEach((x,i)=>{fr+=`<path d="M${x} 21.6Q${x-1.6} 25 ${x-2.4+i*.6} 28.2" fill="none" stroke="${H}" stroke-width="${w*.85}" stroke-linecap="round"/>`});
-      front=`<path d="${TCAP}" fill="${H}" ${hl}/>${fr}`;break}
+      const st=f.style,strand=(x,end,w,i,pat)=>{const d=`M${f1(x+(x<32?2:-2))} 30Q${f1(x)} ${f1((30+end)/2)} ${f1(x+(i%2?.8:-.8))} ${end-(i%3)*2}`;return `<path d="${d}" fill="none" stroke="${H}" stroke-width="${w}" stroke-linecap="round"/>`+(pat?`<path d="${d}" fill="none" stroke="${ink}" stroke-opacity=".35" stroke-width="${w*.75}" ${pat}/>`:'')};
+      const grooves=`<g fill="none" stroke="${ink}" stroke-opacity=".3" stroke-width=".8" stroke-linecap="round"><path d="M24.6 26.6Q25.6 22.6 28.6 20.6M28.6 25.8Q29.4 22 31.6 20M32.4 25.6Q33 22 35.6 20.4M36.4 26Q37.4 22.6 40.2 21.6M40 27.4Q41.6 24.6 42.8 24"/></g>`;
+      if(st==='locs'){ /* shoulder-length locs swept back off the face */
+        back=`<path d="M17.6 34C16.8 24 22.6 18.6 32 18.6S47.2 24 46.4 34z" fill="${H}" ${hl}/>`+[16.4,18.6,20.8,43.2,45.4,47.6].map((x,i)=>strand(x,53,4.1,i,'stroke-dasharray="3 1.3"')).join('');
+        front=`<path d="${TCAP}" fill="${H}" ${hl}/>${grooves}`}
+      else if(st==='locslong'){ /* locs gathered up into a big high bun */
+        let c='';for(let k=0;k<7;k++){const a=k/7*Math.PI*2;c+=`<path d="M${f1(32+Math.cos(a)*2)} ${f1(12.4+Math.sin(a)*1.6)}Q${f1(32+Math.cos(a+.6)*6.4)} ${f1(12.4+Math.sin(a+.6)*5.4)} ${f1(32+Math.cos(a+1.3)*6.2)} ${f1(12.4+Math.sin(a+1.3)*5.2)}" fill="none" stroke="${ink}" stroke-opacity=".3" stroke-width="1"/>`}
+        back=`<path d="${roughCircle(32,12.6,7.6,.8,seed+9,30)}" fill="${H}" ${hl}/>${c}<path d="M44.2 26Q48 34 46.4 42" fill="none" stroke="${H}" stroke-width="3.6" stroke-linecap="round"/>`;
+        front=`<path d="${TCAP}" fill="${H}" ${hl}/>${grooves}<path d="M28.2 20.4c1.4-.6 2.4-1.8 3-3.6M35.8 20.4c-1.4-.6-2.4-1.8-3-3.6" fill="none" stroke="${H}" stroke-width="2.6" stroke-linecap="round"/>`}
+      else if(st==='braids'){ /* long box braids from a middle part, falling in front of the shoulders */
+        back=`<path d="M17.6 34C16.8 24 22.6 18.6 32 18.6S47.2 24 46.4 34z" fill="${H}" ${hl}/>`+[17.2,19.4,44.6,46.8].map((x,i)=>strand(x,63,3,i,'stroke-dasharray="2.2 .9"')).join('');
+        const fb=[[20.6,-1],[22.2,-1.6],[41.8,1.6],[43.4,1]].map(([x,d],i)=>{const q=`M${x} 31Q${f1(x+d*2.4)} 46 ${f1(x+d*1.2)} ${60-(i%2)*3}`;return `<path d="${q}" fill="none" stroke="${H}" stroke-width="3" stroke-linecap="round"/><path d="${q}" fill="none" stroke="${ink}" stroke-opacity=".38" stroke-width="2.2" stroke-dasharray="2.2 .9"/>`}).join('');
+        front=`<path d="M19.6 34C19 24.6 24.6 19.8 32 19.8S45 24.6 44.4 34C43.4 29 40.2 26 36 25 34 24.4 32.8 23.6 32 22.4 31.2 23.6 30 24.4 28 25 23.8 26 20.6 29 19.6 34z" fill="${H}" ${hl}/><path d="M25 25.4l1.4 2.6M28.4 23.8l1 2.8M35.6 23.8l-1 2.8M39 25.4l-1.4 2.6" stroke="${ink}" stroke-opacity=".3" stroke-width=".7"/>${fb}`}
+      else { /* short two-strand twists standing out all round */
+        let t='';for(let k=0;k<11;k++){const a=(192+k*15.6)*Math.PI/180,x0=32+12*Math.cos(a),y0=31+12.6*Math.sin(a),x1=32+17.4*Math.cos(a),y1=31+17.8*Math.sin(a);
+          t+=`<path d="M${f1(x0)} ${f1(y0)}L${f1(x1)} ${f1(y1)}" stroke="${H}" stroke-width="3.6" stroke-linecap="round"/><path d="M${f1(x0)} ${f1(y0)}L${f1(x1)} ${f1(y1)}" stroke="${ink}" stroke-opacity=".38" stroke-width="2.6" stroke-dasharray="1.4 1.1"/>`}
+        back=`<g fill="none">${t}</g>`;
+        front=`<path d="${TCAP}" fill="${H}" ${hl}/>`+[24.6,28.2,32,35.8,39.4].map((x,i)=>`<path d="M${x} 21.2l${(i-2)*.5} -3.6" stroke="${H}" stroke-width="3.2" stroke-linecap="round"/><path d="M${x} 21.2l${(i-2)*.5} -3.6" stroke="${ink}" stroke-opacity=".38" stroke-width="2.2" stroke-dasharray="1.4 1.1"/>`).join('')}
+      break}
     case'cornrows':{
       let rows='';[-9,-4.5,0,4.5,9].forEach(o=>{rows+=`<path d="M${f1(32+o*1.05)} 22.4Q${f1(32+o*.8)} 26 ${f1(32+o*1.25)} 30.6" fill="none" stroke="${ink}" stroke-opacity=".38" stroke-width=".8" stroke-dasharray="1.4 .7"/>`});
       front=`<path d="${TCAP}" fill="${H}" ${hl}/>${rows}`;break}
