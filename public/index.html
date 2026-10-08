@@ -839,6 +839,10 @@ button.card{cursor:pointer}
   .pile .cnt{right:calc(var(--pw)*-.62);bottom:calc(var(--pw)*-.3)}
 }
 .chili small{white-space:nowrap}
+.drow .cards{gap:0 8px;padding-left:0}.drow .cards .card{margin-left:0}
+.drow .cards .card.top{box-shadow:-3px 2px 6px rgba(60,30,10,.18);translate:0 -5px}
+.slip{min-width:min(520px,80vw)}
+@media (max-width:640px){.slip{min-width:0;width:calc(100vw - 40px)}.deck .cnt{top:auto;bottom:-16px;z-index:9}}
 .pile.self .pname{display:flex}
 .catrow .lbl i{display:none}
 @media (max-width:640px){
@@ -1804,6 +1808,7 @@ function showLobby(){
   clearInterval(L.iv);
   L.iv=setInterval(()=>{
     if(!L||!$('#cring'))return;
+    const now=performance.now();if(modal){L.t0+=now-(L.lt||now)}L.lt=now;if(modal)return; // the clock waits while a page is open
     const rem=Math.max(0,LOBBY_S-(performance.now()-L.t0)/1000);setRing(rem);
     if(rem<=0){clearInterval(L.iv);startGame()}
   },200);
