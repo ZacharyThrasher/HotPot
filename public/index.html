@@ -717,6 +717,40 @@ button.card{cursor:pointer}
 .shelf::after{content:"";position:absolute;left:0;right:0;bottom:0;height:7px;border-radius:2px;background:linear-gradient(180deg,#b88a5c,#8a5f3a);box-shadow:0 3px 4px rgba(60,30,10,.3)}
 .shelf .card{margin-left:-6px;transform:rotate(var(--rot,0deg));transform-origin:50% 100%}
 .shelf .card:first-child{margin-left:0}
+
+/* ===== critic round two ===== */
+.ibtn svg{stroke-width:1.9}
+.chili small{color:var(--ink2);font-size:16px}
+/* while the big moment plays, the well's pieces sink under the broth */
+#game.moment-on .ring-seats{opacity:.12;filter:blur(3px);transition:opacity .5s,filter .5s}
+/* the ninth place: a little dip in the broth with a ripple round it */
+.slot{background:radial-gradient(closest-side,rgba(60,20,0,.28),rgba(60,20,0,.12) 70%,transparent);border-radius:46% 54% 50% 50%/40% 44% 56% 60%;color:rgba(255,240,215,.8)}
+.slot::before,.slot::after{content:"";position:absolute;inset:6% 2%;border-radius:50%;border:1.5px solid rgba(255,244,220,.32);animation:slotripple 3.6s ease-out infinite}
+.slot::after{animation-delay:-1.8s}
+@keyframes slotripple{from{transform:scale(.55);opacity:0}30%{opacity:1}to{transform:scale(1.08);opacity:0}}
+#game.myturn .slot{animation:none}
+/* name tags: warm paper with just a breath of each player's colour */
+.nametag{background:var(--grain),color-mix(in srgb,var(--pc,#e9dcc0) 12%,#f7ead0)}
+/* each opponent's cards sit in their broth: a wet shadow and a ring of ripples */
+.opp .fan::before{content:"";position:absolute;inset:-14% -10%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(40,10,0,.35),rgba(40,10,0,.1) 70%,transparent);pointer-events:none}
+.opp .fan::after{content:"";position:absolute;inset:-22% -16%;z-index:-1;border-radius:50%;border:1.5px solid rgba(255,244,220,.22);pointer-events:none;animation:slotripple 5s ease-out infinite}
+/* a handwritten nudge where the button will appear */
+.nudge{font:400 18px/1 var(--f-hand);color:#fbe9cc;text-shadow:0 1px 2px rgba(40,12,0,.9);display:inline-flex;align-items:flex-end;gap:2px}
+.nudge svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation:nudge 1.6s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(-3px)}}
+/* the thread key, taught once on the rules page */
+.tk{display:inline-block;width:24px;height:8px;vertical-align:1px;background:var(--kc);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 7'%3E%3Cpath d='M0 3.5c3 2.4 6 2.4 12 0s9-2.4 12 0' fill='none' stroke='%23000' stroke-width='2.1'/%3E%3C/svg%3E") 0 0/100% 100%;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 7'%3E%3Cpath d='M0 3.5c3 2.4 6 2.4 12 0s9-2.4 12 0' fill='none' stroke='%23000' stroke-width='2.1'/%3E%3C/svg%3E") 0 0/100% 100%}
+.tkd{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--honey);vertical-align:0}
+/* the bill: one card column for everyone, the stamp on the winner's portrait */
+.line{grid-template-columns:auto 150px 1fr auto}
+.lwho small{white-space:normal}
+.hanko{left:-14px;top:-10px;right:auto}
+@media (max-width:640px){
+  .hanko{left:-10px;top:-6px;right:auto}
+  .sheet .foot{flex-direction:column-reverse;align-items:stretch;gap:12px;text-align:center}
+  .drawn .newnote{top:-24px}
+  .nudge{font-size:16px}
+}
 </style>
 
 <body>
@@ -735,13 +769,13 @@ button.card{cursor:pointer}
         <div class="sign"><span>round</span><b id="hudRound">1</b><b id="hudDeck" hidden>64</b></div>
       </div>
       <div class="tools">
-        <button class="ibtn" data-act="discards" aria-label="Every discard (Q)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 7.8l7.6-2.6 3.4 10.1-7.5 2.6z"/><path d="M14.6 6.2l3.7.4-.9 10.6-3-.3"/><path d="M8.6 11.2l3.6-1.2"/></svg><span class="tip">Discards<span class="k">Q</span></span></button>
-        <button class="ibtn" data-act="handview" aria-label="Your hand up close (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.1 9.3l4.6-2.5 5 9-4.5 2.6z"/><path d="M9.6 5.4h5.2l.1 10.3H9.7"/><path d="M16.4 5.8l4.4 2.9-5.1 8.5"/></svg><span class="tip">Your hand<span class="k">E</span></span></button>
-        <button class="ibtn" data-act="helper" id="btnHelper" aria-pressed="true" aria-label="Hints"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c.6 3.4 1.9 5 5.4 5.6-3.4.7-4.8 2.2-5.4 5.7-.6-3.5-2-5-5.5-5.7 3.5-.6 4.9-2.2 5.5-5.6z"/><path class="on-only" d="M18.4 14.2c.3 1.6.9 2.3 2.5 2.6-1.6.3-2.2 1-2.5 2.6-.3-1.6-.9-2.3-2.5-2.6 1.6-.3 2.2-1 2.5-2.6zM6 15.6c.2 1.1.6 1.6 1.7 1.8-1.1.2-1.5.7-1.7 1.8-.2-1.1-.6-1.6-1.7-1.8 1.1-.2 1.5-.7 1.7-1.8z"/></svg><span class="tip" id="tipHelper">Hints on</span></button>
-        <button class="ibtn" data-act="help" aria-label="How to play (T)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.2 3.3c5 .1 8.6 3.6 8.4 8.9-.2 5-3.8 8.5-8.8 8.4-4.9-.2-8.4-3.9-8.3-8.8.2-5 3.9-8.6 8.7-8.5z"/><path d="M9.3 9.6c.3-1.9 1.6-2.9 3.2-2.8 1.7.1 2.8 1.2 2.7 2.6-.1 1.7-1.5 2.1-2.5 2.9-.5.4-.7.9-.7 1.6"/><path d="M12 16.7v.2"/></svg><span class="tip">How to play<span class="k">T</span></span></button>
-        <button class="ibtn" data-act="mute" id="btnMute" aria-pressed="true" aria-label="Sounds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 9.4h3.3l4.6-4v13.4l-4.7-4.1H4.3z"/><path class="on-only" d="M15.4 9.2c1.3 1.6 1.3 4.1 0 5.7M18 6.8c2.6 3 2.6 7.6 0 10.6"/><path class="off-only" d="M15.6 9.6l4.6 4.8M20.2 9.6l-4.6 4.8"/></svg><span class="tip" id="tipMute">Sounds on</span></button>
-        <button class="ibtn" data-act="music" id="btnMusic" aria-pressed="true" aria-label="Music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 17.4V6.2l10-2.4v11"/><path d="M9.2 9.3l10-2.4"/><path d="M6.9 19.9c1.4 0 2.5-.9 2.4-2.1-.1-1.1-1.2-1.8-2.5-1.7-1.3.1-2.4 1-2.3 2.1.1 1 1.1 1.7 2.4 1.7zM16.9 17.5c1.4 0 2.5-.9 2.4-2.1-.1-1.1-1.2-1.8-2.5-1.7-1.3.1-2.4 1-2.3 2.1.1 1 1.1 1.7 2.4 1.7z"/></svg><span class="tip" id="tipMusic">Music on</span></button>
-        <button class="ibtn" data-act="quit" aria-label="Leave the table (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.6 4.3H6.2c-.6 0-1 .4-1 1v13.5c0 .6.4 1 1 1h7.4"/><path d="M10.4 12.1h9.8M17.2 8.8l3.2 3.3-3.2 3.2"/></svg><span class="tip">Leave<span class="k">Esc</span></span></button>
+        <button class="ibtn" data-act="discards" aria-label="Every discard (Q)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 13.4h16.8c-.4 4.2-3.8 6.8-8.4 6.8s-8-2.6-8.4-6.8z"/><path d="M7.4 13.2l1.2-8.6 6.4 1-1.1 7.6"/><path d="M13.6 13.1l3.2-6.4 2.9 1.5-2.4 4.9"/></svg><span class="tip">Discards<span class="k">Q</span></span></button>
+        <button class="ibtn" data-act="handview" aria-label="Your hand up close (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 18.6l-1.6-9.2 5.2-.9 1.6 9.2z"/><path d="M9.6 17.4L9.4 7.6h5.4l-.3 9.8z"/><path d="M14.6 17.6l2.3-9.1 5 1.3-2.4 9z"/><path d="M8.4 21c2.4.7 5.2.8 7.4 0"/></svg><span class="tip">Your hand<span class="k">E</span></span></button>
+        <button class="ibtn" data-act="helper" id="btnHelper" aria-pressed="true" aria-label="Hints"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c.5 3.6 1.8 5 5.6 5.7-3.6.6-5 2.1-5.6 5.8-.6-3.7-2-5.2-5.7-5.8 3.7-.7 5.1-2.1 5.7-5.7z"/><path class="on-only" d="M18.4 14.4c.3 1.6 1 2.3 2.6 2.6-1.6.3-2.3 1-2.6 2.6-.3-1.6-1-2.3-2.6-2.6 1.6-.3 2.3-1 2.6-2.6zM5.8 15.8c.2 1.1.7 1.6 1.8 1.8-1.1.2-1.6.7-1.8 1.8-.2-1.1-.7-1.6-1.8-1.8 1.1-.2 1.6-.7 1.8-1.8z"/></svg><span class="tip" id="tipHelper">Hints on</span></button>
+        <button class="ibtn" data-act="help" aria-label="How to play (T)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 5.2c3.6-.6 8.2-.6 11.6 0 .6 4.6.6 9 0 13.6-3.4.6-8 .6-11.6 0"/><path d="M6.6 5.2c-1.8-.2-2.8.8-2.6 2.2.1 1.2 1 1.8 2.4 1.6M6.6 18.8c-1.8.2-2.8-.8-2.6-2.2.1-1.2 1-1.8 2.4-1.6"/><path d="M6.4 9v6"/><path d="M9.6 9.4h5.8M9.6 12h6.4M9.6 14.6h4.2"/></svg><span class="tip">How to play<span class="k">T</span></span></button>
+        <button class="ibtn" data-act="mute" id="btnMute" aria-pressed="true" aria-label="Sounds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2v1.6"/><path d="M7 15.6c.2-4.4.6-9.4 5-9.6 4.4.2 4.8 5.2 5 9.6l1.8 2H5.2z"/><path d="M10.4 19.6c.4 1.2 2.8 1.2 3.2 0"/><path class="on-only" d="M20 6.6c1 1.4 1.3 3 1 4.6M4 6.6c-1 1.4-1.3 3-1 4.6"/><path class="off-only" d="M4 4l16 16"/></svg><span class="tip" id="tipMute">Sounds on</span></button>
+        <button class="ibtn" data-act="music" id="btnMusic" aria-pressed="true" aria-label="Music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.6 2.6l-.4 13.6"/><path d="M12.2 4.2l2.6.4M12.2 6.6l2.6.4"/><path d="M8.6 16.8c0-2 2-3.2 4.6-3.2s4.4 1.2 4.4 3.2-1.8 3.4-4.4 3.4-4.6-1.4-4.6-3.4z"/><path d="M4 14.6c6 1.6 12 2.2 17.4 1.8" opacity=".75"/></svg><span class="tip" id="tipMusic">Music on</span></button>
+        <button class="ibtn" data-act="quit" aria-label="Leave the table (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9.4c.2-1.8 3.2-2.8 7-2.8s6.8 1 7 2.8c-.2 1.8-3.2 2.6-7 2.6S5.2 11.2 5 9.4z"/><path d="M6.4 11.2L5 20.4M17.6 11.2l1.4 9.2M10 12l-.6 7M14 12l.6 7M5.8 16.6h12.4"/></svg><span class="tip">Leave<span class="k">Esc</span></span></button>
       </div>
     </header>
     <div class="slipwrap"><div class="slip paper lift" aria-live="polite"><i class="pin" aria-hidden="true"></i><div class="msg" id="msg"></div><div class="log" id="log"></div><div class="fuse" id="bar" aria-hidden="true"><i></i></div></div></div>
@@ -1076,7 +1110,7 @@ function skySVG(W,H){
    <circle cx="${mx}" cy="${my}" r="${mr*6}" fill="url(#mg)"/>
    <path d="${roughCircle(mx,my,mr,mr*.012,41,72)}" fill="url(#mface)"/>${maria}
    <path d="M${f1(mx+mr*.55)} ${f1(my-mr*.62)}a${f1(mr*.9)} ${f1(mr*.9)} 0 0 1 ${f1(mr*.3)} ${f1(mr*.95)}" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="${f1(mr*.08)}" stroke-linecap="round"/>
-   <ellipse cx="${f1(mx-mr*.4)}" cy="${f1(my+mr*.15)}" rx="${f1(mr*1.9)}" ry="${f1(mr*.18)}" fill="#5a3a5e" opacity=".45" filter="url(#cl)"/>`}
+`}
   for(let i=0;i<5;i++){const y=H*(.12+R()*.32),x=R()*W,w=W*(.18+R()*.25);s+=`<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(w)}" ry="${f1(10+R()*16)}" fill="${i%2?'#6a4466':'#5a3a5e'}" opacity="${(.22+R()*.18).toFixed(2)}" filter="url(#cl)"/>`}
   // the far shore: soft hills, little rooftops and fairground tents with warm windows
   let hill=`M0 ${hz}`;for(let x=0;x<=W;x+=W/12)hill+=`L${f1(x)} ${f1(hz-14-R()*26-Math.sin(x/W*3.1)*16)}`;s+=`<path d="${hill}L${W} ${hz}z" fill="#2c2038"/>`;
@@ -1211,42 +1245,59 @@ function bigPotSVG(W,H,g){
   let defs='';
   for(let k=0;k<4;k++){const b=BROTHS[seatOf[k]];
     defs+=`<radialGradient id="br${k}" gradientUnits="userSpaceOnUse" cx="${f1(wx)}" cy="${f1(wy)}" r="${f1(Math.max(rx,ry)*1.05)}"><stop offset=".25" stop-color="${b.d}"/><stop offset=".55" stop-color="${b.c}"/><stop offset=".8" stop-color="${b.l}" stop-opacity=".9"/><stop offset="1" stop-color="${b.d}"/></radialGradient>`}
-  // lazy swirls of oil around the well
+  // each broth catches the lantern light in a couple of soft, uneven highlights
   let swirls='';
-  for(let i=0;i<22;i++){
-    const t=.18+R()*.78,a=R()*6.283,span=.35+R()*.9,erx=wrx+(rx-wrx)*t,ery=wry+(ry-wry)*t;
-    const p0=[wx+Math.cos(a)*erx,wy+Math.sin(a)*ery],p1=[wx+Math.cos(a+span)*erx,wy+Math.sin(a+span)*ery];
-    swirls+=`<path d="M${pt(p0)}A${f1(erx)} ${f1(ery)} 0 0 1 ${pt(p1)}" stroke="${R()<.55?'#fff3c8':'#3a1a08'}" stroke-opacity="${(R()*.1+.06).toFixed(2)}" stroke-width="${f1(4+R()*16)}" fill="none" stroke-linecap="round"/>`;
-  }
-  // bits floating in the broth: chilli flakes, scallion rings, goji, sesame, star anise, oil beads
-  const bit=(x,y,s)=>{
-    const r=R(),rot=(R()*360)|0;
-    if(r<.22)return `<path d="M-3 -1.4q3-1.6 6 0l-.6 2.8q-2.4 1-4.8 0z" fill="#9a1d10" transform="translate(${f1(x)} ${f1(y)}) rotate(${rot}) scale(${s})"/>`;
-    if(r<.4)return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(3.2*s)}" fill="none" stroke="#7fbf4c" stroke-width="${f1(1.7*s)}"/><circle cx="${f1(x-.8*s)}" cy="${f1(y-.9*s)}" r="${f1(1.2*s)}" fill="#d6f0a8" opacity=".6"/>`;
-    if(r<.52)return `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(3.4*s)}" ry="${f1(2*s)}" fill="#d8361e" transform="rotate(${rot} ${f1(x)} ${f1(y)})"/><ellipse cx="${f1(x-1*s)}" cy="${f1(y-.6*s)}" rx="${f1(1.1*s)}" ry="${f1(.6*s)}" fill="#ffb09a"/>`;
-    if(r<.66)return `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(1.5*s)}" ry="${f1(.9*s)}" fill="#f6e7c4" transform="rotate(${rot} ${f1(x)} ${f1(y)})"/>`;
-    if(r<.7){let d='';for(let j=0;j<8;j++)d+=`<ellipse cx="0" cy="-3.6" rx="1.7" ry="3.3" transform="rotate(${j*45})" fill="#6e3518" stroke="#3e1a08" stroke-width=".5"/><circle cx="0" cy="-4.6" r=".75" transform="rotate(${j*45})" fill="#c08a52"/>`;
-      return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${rot}) scale(${s*.9})">${d}<circle r="1.3" fill="#3e1a08"/></g>`}
-    return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1((2+R()*5)*s)}" fill="#ffe7a0" fill-opacity=".22" stroke="#fff6d8" stroke-opacity=".35" stroke-width=".8"/>`;
+  const sectorAt=(x,y)=>{let a=Math.atan2(y-wy,x-wx);for(let k=0;k<4;k++){let a0=ang[k],a1=ang[(k+1)%4];if(a1<a0)a1+=6.2832;let aa=a;while(aa<a0)aa+=6.2832;if(aa<a1)return seatOf[k]}return 0};
+  for(let k=0;k<4;k++){let a0=ang[k],a1=ang[(k+1)%4];if(a1<a0)a1+=6.2832;
+    for(let j=0;j<2;j++){const a=a0+(a1-a0)*(.3+j*.4+(R()-.5)*.12),t=.45+R()*.3,x=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y=wy+Math.sin(a)*(wry+(ry-wry)*t);
+      swirls+=`<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(30+R()*40)}" ry="${f1(8+R()*10)}" transform="rotate(${((a*180/Math.PI)+90+(R()-.5)*30).toFixed(0)} ${f1(x)} ${f1(y)})" fill="#fffbe8" opacity="${(.1+R()*.08).toFixed(2)}" filter="url(#bpSoft)"/>`}}
+  // what floats in each broth: every broth has its own garnish
+  const G={
+    flake:(s)=>`<path d="M-3 -1.4q3-1.6 6 0l-.6 2.8q-2.4 1-4.8 0z" fill="#8f1a0e" transform="scale(${s})"/>`,
+    chili:(s)=>`<g transform="scale(${s})"><path d="M-7 1c3-4 9-5 13-2 1 1 0 2-1 2-4-1-8 0-11 2-1 .6-2-.6-1-2z" fill="#a3170c" stroke="#5e0c05" stroke-width=".6"/><path d="M5.6 -1.4c1.4-.6 2.6-.2 3.2.8" stroke="#4d6b2a" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M-4 .4c2.4-1.6 5-2 7.6-1.4" stroke="#ff8a6a" stroke-opacity=".5" stroke-width=".7" fill="none"/></g>`,
+    pepper:(s)=>`<g transform="scale(${s})">${[[0,0],[2.6,1],[1,2.6],[-2,1.6]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.25" fill="#5a1d10"/><circle cx="${x-.4}" cy="${y-.4}" r=".4" fill="#c06a48"/>`).join('')}</g>`,
+    tomato:(s)=>`<g transform="scale(${s})"><path d="M-5 2C-6-2-2-5 2-4.6 5.6-4 6.4-.4 4.6 2.4 2.6 5-3 5-5 2z" fill="#d93a22" stroke="#8e1d0e" stroke-width=".6"/><path d="M-2.6 .6c1-1.6 3-2 4.6-1.2" stroke="#ffd0a8" stroke-width="1.2" fill="none" stroke-linecap="round"/><circle cx="-.4" cy="1.8" r=".6" fill="#ffe3a0"/><circle cx="1.8" cy="1.2" r=".6" fill="#ffe3a0"/></g>`,
+    scallion:(s)=>`<g transform="scale(${s})"><circle r="3.2" fill="#e8f4c8" fill-opacity=".35" stroke="#6fae3f" stroke-width="1.6"/><path d="M-1.6-1.4a2.2 2.2 0 0 1 2.4-.6" stroke="#e2f6c4" stroke-width=".7" fill="none"/></g>`,
+    goji:(s)=>`<g transform="scale(${s})"><ellipse rx="3.6" ry="2" fill="#d8361e" stroke="#8e1d0e" stroke-width=".5"/><ellipse cx="-1" cy="-.6" rx="1.2" ry=".55" fill="#ffb09a"/><circle cx="3.5" r=".6" fill="#6b2a10"/></g>`,
+    jujube:(s)=>`<g transform="scale(${s})"><ellipse rx="4.6" ry="3.4" fill="#7a1f16" stroke="#3e0c08" stroke-width=".6"/><path d="M-3 -.6c1.4.8 3 .8 4.4-.2M-2.4 1.4c1.6.6 3 .4 4-.6" stroke="#4a120c" stroke-width=".6" fill="none"/><ellipse cx="-1.4" cy="-1.4" rx="1.3" ry=".6" fill="#c75a46" opacity=".7"/></g>`,
+    ginger:(s)=>`<g transform="scale(${s})"><path d="M-5.6-.4C-5.6-3.6-1.6-4.6 1.4-4.2 4.6-3.6 6-1 5.2 1.6 4.2 4.4-.4 4.8-3 3.8-4.8 3-5.6 1.6-5.6-.4z" fill="#f0d79a" stroke="#b08a48" stroke-width=".7"/><path d="M-3-1h5.4M-3.4 1h6.6M-2 2.8h3.6" stroke="#cfae6a" stroke-width=".5"/></g>`,
+    anise:(s)=>{let d='';for(let j=0;j<8;j++)d+=`<ellipse cx="0" cy="-3.6" rx="1.7" ry="3.3" transform="rotate(${j*45})" fill="#6e3518" stroke="#3e1a08" stroke-width=".5"/><circle cx="0" cy="-4.6" r=".75" transform="rotate(${j*45})" fill="#c08a52"/>`;return `<g transform="scale(${s*.9})">${d}<circle r="1.3" fill="#3e1a08"/></g>`},
+    corn:(s)=>`<g transform="scale(${s})"><path d="M-2.2-2.4h4.4c1 1.6 1 3.4 0 4.8h-4.4c-1-1.4-1-3.2 0-4.8z" fill="#f4c443" stroke="#b5841a" stroke-width=".6"/><path d="M-1.2-1.4h2" stroke="#fff0b0" stroke-width=".8"/></g>`,
   };
+  const MENU=[['tomato','tomato','scallion','scallion','goji','anise'],['corn','corn','goji','ginger','scallion','anise'],['chili','chili','pepper','pepper','flake','flake','anise'],['goji','goji','jujube','ginger','scallion','scallion']];
+  const bit=(x,y,s)=>{const m=MENU[sectorAt(x,y)],k=m[(R()*m.length)|0];return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${(R()*360)|0})">${G[k](s)}</g>`};
   // chili oil: little clusters of golden beads, the way oil gathers on a simmering broth
   let oil='';
-  for(let i=0;i<Math.round(26*Math.min(1.4,W*H/1e6)+8);i++){
+  for(let i=0;i<Math.round(16*Math.min(1.4,W*H/1e6)+6);i++){
     const t=.1+R()*.8,a=R()*6.283,x0=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y0=wy+Math.sin(a)*(wry+(ry-wry)*t),n=3+((R()*7)|0);
     for(let j=0;j<n;j++){const x=x0+(R()-.5)*34,y=y0+(R()-.5)*22,r=1.5+R()*R()*9;
       oil+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#ffd27a" fill-opacity="${(.12+R()*.16).toFixed(2)}"/><path d="M${f1(x-r*.55)} ${f1(y-r*.2)}a${f1(r*.6)} ${f1(r*.6)} 0 0 1 ${f1(r*.5)} ${f1(-r*.45)}" stroke="#fff8e0" stroke-opacity=".55" stroke-width="${f1(Math.max(.6,r*.18))}" fill="none" stroke-linecap="round"/>`}
   }
   let wellBits='';
-  for(let i=0;i<9;i++){const t=.3+R()*.6,a=R()*6.283,span=.5+R()*1.1,erx=wrx*t,ery=wry*t;
+  for(let i=0;i<0;i++){const t=.3+R()*.6,a=R()*6.283,span=.5+R()*1.1,erx=wrx*t,ery=wry*t;
     wellBits+=`<path d="M${pt([wx+Math.cos(a)*erx,wy+Math.sin(a)*ery])}A${f1(erx)} ${f1(ery)} 0 0 1 ${pt([wx+Math.cos(a+span)*erx,wy+Math.sin(a+span)*ery])}" stroke="${i%3?'#f0b46a':'#24100a'}" stroke-opacity="${i%3?.12:.25}" stroke-width="${f1(5+R()*9)}" fill="none" stroke-linecap="round"/>`}
   for(let i=0;i<46;i++){const t=.25+R()*.75,a=R()*6.283,x=wx+Math.cos(a)*wrx*t,y=wy+Math.sin(a)*wry*t,r=1.2+R()*R()*6;
     wellBits+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#ffc96a" fill-opacity="${(.1+R()*.14).toFixed(2)}"/>`+(R()<.25?`<circle cx="${f1(x+r*2.5)}" cy="${f1(y)}" r="${f1(1.4)}" fill="#7fbf4c" opacity=".8"/>`:'')}
   const sc=Math.max(.8,Math.min(1.35,W/1100));
+  // a ladle left resting in the well, handle over the lip
+  const la=-.72,lx=wx+Math.cos(la)*wrx*.74,ly=wy+Math.sin(la)*wry*.74,ls=Math.max(.75,Math.min(1.3,wrx/300));
+  const ladle=`<g transform="translate(${f1(lx)} ${f1(ly)}) rotate(${(la*180/Math.PI).toFixed(1)}) scale(${ls.toFixed(2)})">
+    <path d="M14 4L150 13" stroke="#000" stroke-opacity=".35" stroke-width="12" stroke-linecap="round" filter="url(#bpSoft)"/>
+    <ellipse cx="2" cy="6" rx="26" ry="23" fill="#000" opacity=".35" filter="url(#bpSoft)"/>
+    <path d="M18 0L146 8" stroke="#5b3a22" stroke-width="9" stroke-linecap="round"/><path d="M18 -1.6L146 6.4" stroke="#b07a48" stroke-width="5" stroke-linecap="round"/><path d="M40 -2.4L120 2.6" stroke="#e0b07a" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>
+    <circle cx="140" cy="7.6" r="2.2" fill="#3a2414"/>
+    <ellipse cx="0" cy="0" rx="25" ry="22" fill="#4a3f38" stroke="#211913" stroke-width="2"/>
+    <ellipse cx="0" cy="1" rx="20.5" ry="17.5" fill="#7a3f1c"/><ellipse cx="-3" cy="-2" rx="12" ry="7" fill="#c98a4c" opacity=".35"/>
+    <path d="M-18 -8A24 21 0 0 1 10 -19" fill="none" stroke="#a89888" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
+    <circle cx="6" cy="5" r="2.2" fill="#7fbf4c"/><circle cx="-6" cy="7" r="1.6" fill="#ffd27a" opacity=".6"/>
+  </g>`;
   let bits='';
-  for(let i=0;i<Math.round(110*Math.min(1.3,W*H/1.1e6)+30);i++){
-    const t=.08+R()*.86,a=R()*6.283,x=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y=wy+Math.sin(a)*(wry+(ry-wry)*t);
-    if(((x-cx)/rx)**2+((y-cy)/ry)**2>.9)continue;
-    bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px">${bit(x,y,sc*(.8+R()*.6))}</g>`;
+  const nb=Math.round(16*Math.min(1.4,W*H/1e6)+6);
+  for(let c=0;c<nb;c++){
+    const t=.5+R()*.42,a=R()*6.283,x0=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y0=wy+Math.sin(a)*(wry+(ry-wry)*t),n=2+((R()*4)|0);
+    for(let j=0;j<n;j++){const x=x0+(R()-.5)*60,y=y0+(R()-.5)*36;
+      if(((x-cx)/rx)**2+((y-cy)/ry)**2>.9||((x-wx)/(wrx+14))**2+((y-wy)/(wry+14))**2<1)continue;
+      bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px">${bit(x,y,sc*(1.15+R()*.5))}</g>`}
   }
   // iron dividers: from the lip of the well out to the rim, with a little cloud scroll where they meet the well
   let divs='';
@@ -1257,7 +1308,7 @@ function bigPotSVG(W,H,g){
     const A=(c/rx)**2+(s/ry)**2,B=2*((wx-cx)*c/rx**2+(wy-cy)*s/ry**2),C=((wx-cx)/rx)**2+((wy-cy)/ry)**2-1;
     const tt=(-B+Math.sqrt(B*B-4*A*C))/(2*A),p1=[wx+c*tt,wy+s*tt];
     const nx=-s,ny=c,w=Math.max(9,Math.min(16,W/95));
-    divs+=`<path d="M${pt(p0)}L${pt(p1)}" stroke="#1f1814" stroke-width="${f1(w+5)}" stroke-linecap="round" opacity=".55" transform="translate(3 6)" filter="url(#bpSoft)"/>
+    divs+=`<path d="M${pt(p0)}L${pt(p1)}" stroke="#fff4d8" stroke-opacity=".22" stroke-width="${f1(w+7)}" stroke-linecap="round"/><path d="M${pt(p0)}L${pt(p1)}" stroke="#1f1814" stroke-width="${f1(w+5)}" stroke-linecap="round" opacity=".55" transform="translate(3 6)" filter="url(#bpSoft)"/>
       <path d="M${pt(p0)}L${pt(p1)}" stroke="#3a302a" stroke-width="${f1(w)}" stroke-linecap="round"/>
       <path d="M${pt([p0[0]+nx*w*.22,p0[1]+ny*w*.22])}L${pt([p1[0]+nx*w*.22,p1[1]+ny*w*.22])}" stroke="#7d6e62" stroke-width="${f1(w*.22)}" stroke-linecap="round" opacity=".7"/>
       <g transform="translate(${pt(p0)}) rotate(${(a*180/Math.PI).toFixed(1)})"><path d="M${f1(-w*.3)} ${f1(-w*1.1)}C${f1(w*1.2)} ${f1(-w*1.2)} ${f1(w*2.2)} ${f1(-w*.7)} ${f1(w*2.6)} 0C${f1(w*2.2)} ${f1(w*.7)} ${f1(w*1.2)} ${f1(w*1.2)} ${f1(-w*.3)} ${f1(w*1.1)}Z" fill="#3a302a" stroke="#1d1612" stroke-width="1.2"/><path d="M${f1(w*.1)} ${f1(-w*.8)}C${f1(w*1.1)} ${f1(-w*.85)} ${f1(w*1.8)} ${f1(-w*.5)} ${f1(w*2.1)} ${f1(-w*.1)}" fill="none" stroke="#8f8073" stroke-width="1.3" stroke-linecap="round" opacity=".7"/><circle cx="${f1(w*.75)}" cy="${f1(-w*.42)}" r="${f1(w*.17)}" fill="#8f8073"/><circle cx="${f1(w*.75)}" cy="${f1(w*.42)}" r="${f1(w*.17)}" fill="#8f8073"/></g>
@@ -1300,15 +1351,20 @@ function bigPotSVG(W,H,g){
   <g clip-path="url(#wellClip)">${wellBits}</g>
   <clipPath id="wellClip"><ellipse cx="${f1(wx)}" cy="${f1(wy)}" rx="${f1(wrx)}" ry="${f1(wry)}"/></clipPath>
   <ellipse cx="${f1(wx)}" cy="${f1(wy)}" rx="${f1(wrx)}" ry="${f1(wry)}" fill="none" stroke="#1a0c05" stroke-opacity=".55" stroke-width="${f1(lip*1.6)}" filter="url(#bpSoft)" clip-path="url(#wellClip)"/>
-  <path d="M${f1(wx-wrx*.9)} ${f1(wy-wry*.45)}A${f1(wrx+lip*.35)} ${f1(wry+lip*.35)} 0 0 1 ${f1(wx-wrx*.1)} ${f1(wy-wry-lip*.3)}" fill="none" stroke="#c2b2a2" stroke-opacity=".4" stroke-width="${f1(lip*.35)}" stroke-linecap="round"/>`;
+  <path d="M${f1(wx-wrx*.9)} ${f1(wy-wry*.45)}A${f1(wrx+lip*.35)} ${f1(wry+lip*.35)} 0 0 1 ${f1(wx-wrx*.1)} ${f1(wy-wry-lip*.3)}" fill="none" stroke="#c2b2a2" stroke-opacity=".4" stroke-width="${f1(lip*.35)}" stroke-linecap="round"/>
+  ${ladle}`;
 }
 /* the slow whirlpool at the very centre, turned by CSS so the browser can spin it cheaply */
 function vortexSVG(){
   const R=seeded(5);let arms='';
-  for(let i=0;i<7;i++){const a0=i/7*6.283;let d='';for(let j=0;j<=24;j++){const t=j/24,r=8+t*92,a=a0+t*2.4;d+=(j?'L':'M')+f1(100+Math.cos(a)*r)+' '+f1(100+Math.sin(a)*r)}
-    arms+=`<path d="${d}" stroke="${i%2?'#f3c27a':'#2a1206'}" stroke-opacity="${i%2?.22:.3}" stroke-width="${f1(6+R()*8)}" fill="none" stroke-linecap="round"/>`}
-  return `<svg class="vortex" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="vxG"><stop offset="0" stop-color="#1c0b04"/><stop offset=".5" stop-color="#4a2410" stop-opacity=".7"/><stop offset="1" stop-color="#6b3a1d" stop-opacity="0"/></radialGradient></defs><circle cx="100" cy="100" r="100" fill="url(#vxG)"/>${arms}</svg>`;
+  // one lazy whirl: a few uneven arms of oil and shadow, never the same width twice
+  [[0,.95,14,'#2a1206',.32],[1.3,.7,9,'#f3c27a',.2],[2.6,.85,11,'#2a1206',.26],[3.9,.55,7,'#f3c27a',.16],[4.9,.75,10,'#2a1206',.22]].forEach(([a0,len,w,c,o])=>{
+    let d='';const n=20;for(let j=0;j<=n;j++){const t=j/n*len,r=10+t*92+(R()-.5)*3,a=a0+t*2.2+t*t*.6;d+=(j?'L':'M')+f1(100+Math.cos(a)*r)+' '+f1(100+Math.sin(a)*r)}
+    arms+=`<path d="${d}" stroke="${c}" stroke-opacity="${o}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`});
+  let seeds='';for(let i=0;i<14;i++){const a=R()*6.283,r=24+R()*66;seeds+=`<ellipse cx="${f1(100+Math.cos(a)*r)}" cy="${f1(100+Math.sin(a)*r)}" rx="1.6" ry=".9" transform="rotate(${(R()*180)|0} ${f1(100+Math.cos(a)*r)} ${f1(100+Math.sin(a)*r)})" fill="#f3e2bb" opacity=".8"/>`}
+  return `<svg class="vortex" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="vxG"><stop offset="0" stop-color="#1c0b04"/><stop offset=".45" stop-color="#4a2410" stop-opacity=".6"/><stop offset="1" stop-color="#6b3a1d" stop-opacity="0"/></radialGradient></defs><circle cx="100" cy="100" r="100" fill="url(#vxG)"/>${arms}${seeds}<ellipse cx="80" cy="74" rx="26" ry="9" transform="rotate(-30 80 74)" fill="#fff6e0" opacity=".1"/></svg>`;
 }
+
 
 /* =============================== SOUND =============================== */
 /* Everything is synthesised: plucked strings (Karplus-Strong), paper rustles from filtered noise,
@@ -1634,7 +1690,7 @@ function showLobby(){
     ${spiceHTML(diff,k=>`data-diff="${k}"`)}
     <div class="go"><button class="btn primary big" data-act="startnow" id="btnStart">Start now</button>
       <div class="waiting">${ringHTML()}<span>or on its own in <b id="csec">${LOBBY_S}</b>s</span></div></div>
-    <div class="links">${ONLINE_OK?`<button class="link" data-act="online">Play online with friends</button>`:''}${st.games?`<button class="link" data-act="help">How to play</button>`:''}<button class="link" data-act="credits">The music</button></div>
+    <div class="links">${ONLINE_OK?`<button class="link" data-act="online">Play online with friends</button>`:''}${st.games?`<button class="link" data-act="help">How to play</button>`:''}<button class="link" data-act="credits">♪ about the music</button></div>
     <p class="ledger">${ledger(st)}</p>
   </div>`;
   L={t0:performance.now()};
@@ -1653,7 +1709,7 @@ function newDeck(){
   for(let i=d.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[d[i],d[j]]=[d[j],d[i]]}
   return d;
 }
-function showGame(){$('#lobby').hidden=true;$('#game').hidden=false;buildPot();requestAnimationFrame(fitTable)}
+function showGame(){$('#lobby').hidden=true;$('#game').hidden=false;$('#game').classList.remove('moment-on');buildPot();requestAnimationFrame(fitTable)}
 function startGame(){
   clearInterval(L&&L.iv); L=null;
   showGame(); $('#layer').innerHTML=''; modal=null;
@@ -1736,7 +1792,7 @@ function tick(){
 
 /* =============================== THE BIG MOMENT =============================== */
 function moment(kind,name){
-  const L2=$('#layer');
+  const L2=$('#layer');$('#game').classList.add('moment-on');
   const mine=kind==='me',dry=kind==='dry';
   const seat=G?G.players.findIndex(q=>q.name===name):-1,wp=seat>=0?G.players[seat]:null;
   const who=dry?`<div class="crowd">${G.players.map((q,i)=>sealHTML(q.name,q.color,seedOf(q.name)+i,'sad','',i===0&&q.color===ME_COLOR)).join('')}</div>`:wp?sealHTML(wp.name,wp.color,seedOf(wp.name)+seat,'happy','',seat===0&&wp.color===ME_COLOR):'';
@@ -1744,7 +1800,7 @@ function moment(kind,name){
   setTimeout(()=>sfx.stamp(),120);
   if(mine&&!RM.matches){
     const few=innerWidth<640;
-    L2.insertAdjacentHTML('beforeend',Array.from({length:few?9:16},(_,i)=>`<div class="skylantern" style="left:${rnd(4,92).toFixed(1)}%;--s:${rnd(few?16:22,few?30:46).toFixed(0)}px;--d:${rnd(7,12).toFixed(1)}s;--dl:${(i*.28+rnd(0,.3)).toFixed(2)}s;--dx1:${rnd(-40,40).toFixed(0)}px;--dx2:${rnd(-60,60).toFixed(0)}px">${skyLanternSVG()}</div>`).join('')
+    L2.insertAdjacentHTML('beforeend',Array.from({length:few?9:16},(_,i)=>`<div class="skylantern" style="left:${(i%2?rnd(1,13):rnd(84,96)).toFixed(1)}%;--s:${rnd(few?16:22,few?30:46).toFixed(0)}px;--d:${rnd(7,12).toFixed(1)}s;--dl:${(i*.28+rnd(0,.3)).toFixed(2)}s;--dx1:${rnd(-40,40).toFixed(0)}px;--dx2:${rnd(-60,60).toFixed(0)}px">${skyLanternSVG()}</div>`).join('')
       +Array.from({length:26},()=>`<i class="petal" style="left:${rnd(0,100).toFixed(1)}%;--pc:${['#f4c1b8','#f7d7c4','#efb0a6','#fbe3d2'][(Math.random()*4)|0]};--d:${rnd(5,9).toFixed(1)}s;--dl:${rnd(.2,2.5).toFixed(2)}s"></i>`).join(''));
     setTimeout(()=>{document.querySelectorAll('.skylantern,.petal').forEach(e=>e.remove())},16000);
   }
@@ -1868,7 +1924,7 @@ function oppHTML(seat){
 const bowl=on=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 11.2h17.2c-.3 4.9-3.8 8.1-8.6 8.1s-8.3-3.2-8.6-8.1z" fill="${on?'#86c06e':'rgba(255,240,215,.08)'}" stroke="#f1dcb8" stroke-width="1.5" stroke-linejoin="round"/>${on?'<path d="M9 8.6c-.9-1.2.9-1.8 0-3.2M12.6 8.6c-.9-1.2.9-1.8 0-3.2M16 8.6c-.9-1.2.9-1.8 0-3.2" fill="none" stroke="#f1dcb8" stroke-width="1.3" stroke-linecap="round"/>':''}</svg>`;
 function slipText(){
   if(G.over)return G.winner==null?'The pot ran dry':G.winner===0?'<em>Hotpot!</em> You did it':`${esc(G.players[G.winner].name)} called hotpot`;
-  if(G.turn===0&&!HP.autoHuman)return G.phase==='draw'?'Your turn! Draw from the <em>pot</em> or a pile':G.sel!=null?`Discard <em>${nameOf(G.players[0].hand.find(c=>c.id===G.sel).t)}</em>? Tap it again, or drag it to your pile`:'Now choose one card to <em>discard</em>';
+  if(G.turn===0&&!HP.autoHuman)return G.phase==='draw'?'Your turn! Draw from the <em>pot</em> or a pile':G.sel!=null?`Toss <em>${nameOf(G.players[0].hand.find(c=>c.id===G.sel).t)}</em>? Tap again, or drag it to your pile`:'Now pick one card to <em>toss back</em>';
   return `${esc(G.players[G.turn].name)} is choosing…`;
 }
 function render(){
@@ -1881,7 +1937,8 @@ function render(){
   $('#hudRound').textContent=G.round;
   $('#hudDeck').textContent=G.draw.length;
   $('#msg').innerHTML=slipText();
-  const lg=G.log.slice(0,2).reverse(),subj=l=>l.split(' ')[0];
+  // phone log: just the latest move, so it never gets cut off
+  const lg=G.log.slice(0,innerWidth<640?1:2).reverse(),subj=l=>l.split(' ')[0];
   $('#log').textContent=lg.map((l,i)=>i?(subj(l)===subj(lg[0])?l.slice(subj(l).length+1):l.replace(/^You /,'you ')):l).join(', then ');
   [0,1,2,3].forEach(s=>$('#pile'+s).innerHTML=pileHTML(s));
   $('#pot').classList.toggle('take',canDraw);
@@ -1918,8 +1975,8 @@ function renderMe(){
     <div class="drawn">${drawn?`<span class="newnote">new!<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 2c-2 7 1 13 8 16"/><path d="M8 19l4-1-1-4"/></svg></span>${mk(drawn,0,true)}`:`<div class="slot"><span>${G.turn===0&&G.phase==='draw'&&!G.over?'draw your<br>9th card':'9th<br>card'}</span></div>`}</div></div>
     <div class="mebar"><div class="who ${G.turn===0&&!G.over?'on':''}">${sealHTML(store.get('pname','')||'You',ME_COLOR,11,(G.turn===0&&!G.over&&!HP.autoHuman?'on ':'')+moodOf(0),'av0',true)}</div>
       <span class="sets" title="Sets in your hand">${[0,1,2].map(i=>bowl(i<setN)).join('')}<span>${setN} of 3 sets</span></span>
-      <button class="btn primary" data-act="discard" ${canDiscard&&G.sel!=null?'':'disabled'} style="${canDiscard?'':'visibility:hidden'}">${canDiscard&&G.sel!=null?'Discard '+nameOf(me.hand.find(c=>c.id===G.sel).t):'Pick a card'}</button></div>
-    <div class="key">${helper?'<span><i style="--kc:var(--sage)"></i>three of a kind</span><span><i style="--kc:var(--sky)"></i>colour set</span><span><i class="dot" style="--kc:var(--honey)"></i>one card away</span>':''}</div>`;
+      ${canDiscard&&G.sel!=null?`<button class="btn primary" data-act="discard">Toss ${nameOf(me.hand.find(c=>c.id===G.sel).t)}</button>`:`<span class="nudge" style="${canDiscard?'':'visibility:hidden'}">pick one to toss back <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17c-1-5 0-9 1-13M7 7l4-3.4 3 4"/></svg></span>`}</div>
+`;
   const hb=$('#btnHelper');hb.setAttribute('aria-pressed',helper);$('#tipHelper').textContent=helper?'Hints on':'Hints off';
 }
 /* the deal: cards slide out of the pot one by one */
@@ -1972,6 +2029,7 @@ function helpModal(tab='rules'){
   <div class="ex">${ex([0,0,0],'three of a kind',1)}${ex([0,1,2],'one colour, three foods',1)}${ex([0,0,1],'not a set',0)}</div>
   <p class="say">At the end, everyone counts the sets in their hand: three of a kind is worth <em>120</em>, a colour set <em>60</em>, and whoever called hotpot gets <em>100</em> more. If the pot runs dry first, nobody wins.</p>
   <p class="say small">There are 96 cards: 8 colours, 3 foods in each, 4 of every food. You get 45 seconds a turn, and what the others throw away tells you what they’re keeping.</p>
+  <p class="say small threadkey">In your hand, a <i class="tk" style="--kc:var(--sage)"></i> green thread ties a three of a kind, a <i class="tk" style="--kc:var(--sky)"></i> blue one ties a colour set, and a little <i class="tkd"></i> honey dot means that card is one away from a set.</p>
   <p class="keys">On a keyboard: <kbd>D</kbd> draws, <kbd>←</kbd> <kbd>→</kbd> and <kbd>Enter</kbd> pick and toss, <kbd>T</kbd> opens this page.</p>`;
   const cards=`<p class="say small">Eight colours, three foods in each. Three of one food, or one of each food in a colour, makes a set.</p><div class="catgrid">${CATS.map((c,ci)=>`<div class="catrow" style="--c:${c.color};--tl:${[-3,2,-2,3,-1,2.5,-2.5,1.5][ci]}deg"><div class="ctag"><b>${c.col}</b><small>${c.name.toLowerCase()}</small></div><div class="shelf">${[0,1,2].map(i=>cardHTML({t:ci*3+i,id:''},{cls:'flat',style:`--rot:${[-4,1,5][i]}deg`})).join('')}</div></div>`).join('')}</div>`;
   openModal(`<div class="sheet-head"><h2>How to play</h2>${xBtn}</div>
@@ -2010,7 +2068,7 @@ function showResults(){
   openModal(`<div class="billhead"><h2>${title}</h2><p class="billsub">${G.winner==null?'Nobody made three sets before the pot ran out, so everyone keeps what they hold.':`Table for four, round ${G.round}. Here’s what everyone was holding.`}</p></div>
   <div class="lines">${rows.map((r,k)=>`<div class="line ${G.winner===r.i?'win':''}" style="--d:${(k*.09).toFixed(2)}s">
     ${sealHTML(r.p.name,r.p.color,seedOf(r.p.name)+r.i,'sm '+mood(r.i),'',r.i===0&&!G.online?true:r.p.color===ME_COLOR)}
-    <div class="lwho"><b>${r.i===0?'You':esc(r.p.name)}</b><small>${r.bs.sets.length?r.bs.sets.map(s=>s.kind==='triple'?'120':'60').join(' + '):'no sets'}${r.bonus?` + ${r.bonus} for the win`:''}</small></div>
+    <div class="lwho"><b>${r.i===0?'You':esc(r.p.name)}</b><small>${r.bs.sets.length?r.bs.sets.map(s=>s.kind==='triple'?'120':'60').join(' + '):'no sets'}${r.bonus?`<br>+ ${r.bonus} for calling hotpot`:''}</small></div>
     <div class="lcards">${lineCards(r.bs)}</div>
     <span class="amt">${r.total}</span>${G.winner===r.i?'<span class="hanko thump" aria-label="winner"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="'+roughCircle(30,30,26,1.4,r.i+3,48)+'" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>won</span></span>':''}</div>`).join('')}</div>
   <div class="total"><span>table total</span><i></i><b>${table}</b></div>
