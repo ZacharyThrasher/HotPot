@@ -37,5 +37,4 @@ All trimmed to mono 32 kHz mp3 and peak-levelled; none needs attribution, credit
 | slide1-4, place1-4, shove1-3, fan1, shuffle | Casino Audio (card-slide, card-place, card-shove, card-fan, card-shuffle) | Kenney (kenney.nl) | CC0 1.0 |
 | bowl1-3, ladle1-3, stamp | Impact Sounds (impactPlate_light, impactMetal_light, impactWood_medium) | Kenney (kenney.nl) | CC0 1.0 |
 | page1-3, coin | RPG Audio (bookFlip1-3, handleCoins2) | Kenney (kenney.nl) | CC0 1.0 |
-| purr | "Purring cat.oga", Wikimedia Commons, trimmed 2.5-6.1 s with fades | Mysid | Public domain |
 | simmer | "Boiling water loops" (cooking_without_cover_01), OpenGameArt, cut to a seamless 8.6 s loop | TinyWorlds | CC0 1.0 |

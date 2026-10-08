@@ -901,46 +901,6 @@ button.card{cursor:pointer}
 }
 .drawn .newnote{transition:opacity .25s ease .1s}.drawn.flying .newnote{opacity:0;transition:none}
 
-/* the table cats */
-#cats{position:absolute;inset:0;z-index:6;pointer-events:none}
-.cat{position:absolute;appearance:none;border:0;background:none;padding:0;margin:0;cursor:pointer;pointer-events:auto;transform:rotate(var(--cr,0deg));transform-origin:50% 70%;-webkit-tap-highlight-color:transparent;transition:opacity .6s ease}
-.cat[hidden]{display:none}
-.cat .catsvg{display:block;width:100%;height:auto;overflow:visible}
-.cat:focus-visible{outline:2px dashed rgba(255,240,210,.6);outline-offset:4px;border-radius:40%}
-.cat::after{content:attr(data-cat);position:absolute;left:50%;bottom:-6px;transform:translateX(-50%) rotate(calc(var(--cr,0deg)*-1));font:700 13px/1 var(--f-hand);color:#fbf3e2;opacity:0;transition:opacity .4s;pointer-events:none;text-shadow:0 1px 2px rgba(0,0,0,.6)}
-.cat:hover::after,.cat:focus-visible::after,.cat.blink::after{opacity:.75}
-.cat g,.cat path{transform-box:fill-box}
-.cat .breath{transform-origin:50% 100%;animation:catbreath 4.2s ease-in-out infinite}
-.cat.alfie .breath{animation-duration:5.4s}
-.cat .head{transform-origin:70% 90%}
-.cat .eye{opacity:0;transition:opacity .25s}
-.cat .lid{transition:opacity .25s}
-.cat.alfie .tail{transform-origin:0% 50%;animation:tailsway 7s ease-in-out infinite}
-.cat .paw{transform-origin:100% 50%}
-.cat .tip{transform-origin:100% 0%}
-@keyframes catbreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,1.045)}}
-@keyframes tailsway{0%,100%{transform:rotate(0)}45%{transform:rotate(-6deg)}60%{transform:rotate(3deg)}}
-.cat.twitch .head{animation:cattwitch .7s ease-out}
-@keyframes cattwitch{20%{transform:rotate(-4deg)}45%{transform:rotate(2deg)}70%{transform:rotate(-1deg)}}
-.cat.peek .eye,.cat.blink .eye{opacity:1}
-.cat.peek .lid.r,.cat.blink .lid.r{opacity:0}
-.cat.blink .eye{animation:catblink 1.4s ease-in-out both}
-@keyframes catblink{0%{opacity:0}15%,45%{opacity:1;transform:scaleY(1)}60%{transform:scaleY(.1)}75%{opacity:1;transform:scaleY(1)}100%{opacity:0}}
-.cat.blink .head{animation:catnuzzle 1.4s ease-in-out}
-@keyframes catnuzzle{30%{transform:rotate(-7deg)}65%{transform:rotate(3deg)}}
-.cat.reach .paw{animation:catreach 1.1s cubic-bezier(.3,.7,.3,1)}
-@keyframes catreach{35%{transform:translateX(-7px) rotate(-5deg)}60%{transform:translateX(-5px) rotate(-3deg)}}
-.cat.flick .tip{animation:catflick 1.3s ease-in-out}
-.cat.flick .tail{animation:catflick2 1.3s ease-in-out}
-@keyframes catflick{20%{transform:rotate(-24deg)}45%{transform:rotate(10deg)}70%{transform:rotate(-8deg)}}
-@keyframes catflick2{30%{transform:rotate(-2deg)}60%{transform:rotate(1deg)}}
-.cat.roll .catsvg{animation:catroll 2.6s ease-in-out;transform-origin:50% 80%}
-@keyframes catroll{25%{transform:scale(1.07,.94) rotate(-4deg)}55%{transform:scale(1.1,.92) rotate(3deg)}80%{transform:scale(1.03,.98)}}
-.paw-steam{position:absolute;bottom:52%;width:18px;height:18px;pointer-events:none;opacity:0;animation:pawrise 3.6s ease-out forwards;z-index:4}
-.paw-steam svg{width:100%;height:100%;fill:rgba(255,248,236,.55);filter:blur(.4px)}
-@keyframes pawrise{0%{opacity:0;transform:translateY(0) scale(.7) rotate(-8deg)}20%{opacity:.85}100%{opacity:0;transform:translateY(-70px) scale(1.15) rotate(10deg)}}
-#game.moment-on #cats{opacity:.45;transition:opacity .5s}
-@media (prefers-reduced-motion:reduce){.cat *,.cat .catsvg{animation:none!important}}
 
 /* cards as objects: a cream paper edge under each card, a sheen that slides as the card tilts, shadows that grow with height */
 .card{filter:drop-shadow(0 1.6px 0 #d9c49e) drop-shadow(0 1px 0 rgba(60,30,10,.5)) drop-shadow(0 5px 6px rgba(10,5,10,.35))}
@@ -1518,13 +1478,14 @@ function bigPotSVG(W,H,g){
     const t=.5+R()*.42,a=R()*6.283,x0=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y0=wy+Math.sin(a)*(wry+(ry-wry)*t),n=2+((R()*4)|0);
     for(let j=0;j<n;j++){const x=x0+(R()-.5)*60,y=y0+(R()-.5)*36;
       if((g.avoid||[]).some(b=>x>b.l&&x<b.r&&y>b.t&&y<b.b)||((x-cx)/rx)**2+((y-cy)/ry)**2>.9||((x-wx)/(wrx+14))**2+((y-wy)/(wry+14))**2<1)continue;
-      bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px">${bit(x,y,sc*(1.6+R()*.6))}</g>`}
+      bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px"><g class="fl" style="transform-origin:${f1(x)}px ${f1(y)}px">${bit(x,y,sc*(1.6+R()*.6))}</g></g>`}
   }
   // iron dividers: from the lip of the well out to the rim, with a little cloud scroll where they meet the well
   let divs='';
   dirs.forEach((_,k)=>{
     const a=ang[k],c=Math.cos(a),s=Math.sin(a);
-    const p0=[wx+c*wrx*.98,wy+s*wry*.98];
+    // start on the well's edge along the very same ray that splits the broth colours
+    const t0=1/Math.sqrt((c/wrx)**2+(s/wry)**2),p0=[wx+c*t0*.98,wy+s*t0*.98];
     // where this ray meets the rim ellipse
     const A=(c/rx)**2+(s/ry)**2,B=2*((wx-cx)*c/rx**2+(wy-cy)*s/ry**2),C=((wx-cx)/rx)**2+((wy-cy)/ry)**2-1;
     const tt=(-B+Math.sqrt(B*B-4*A*C))/(2*A),p1=[wx+c*tt,wy+s*tt];
@@ -1586,118 +1547,6 @@ function vortexSVG(){
   return `<svg class="vortex" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="vxG"><stop offset="0" stop-color="#1c0b04"/><stop offset=".45" stop-color="#4a2410" stop-opacity=".6"/><stop offset="1" stop-color="#6b3a1d" stop-opacity="0"/></radialGradient></defs><circle cx="100" cy="100" r="100" fill="url(#vxG)"/>${arms}${seeds}<ellipse cx="80" cy="74" rx="26" ry="9" transform="rotate(-30 80 74)" fill="#fff6e0" opacity=".1"/></svg>`;
 }
 
-
-/* =============================== THE TABLE CATS =============================== */
-/* Sylvie, a brown tabby with a white chest, sleeps curled on the warm rim of the pot.
-   Alfie, a black-and-white tuxedo, sprawls out long. Both are painted from scratch in the game's style. */
-function sylvieSVG(){
-  const ink='stroke="#3a2a1e" stroke-opacity=".55" stroke-width="1" stroke-linejoin="round"';
-  const stripes=[[52,24,58,40],[62,20,66,38],[72,21,74,40],[82,25,82,42],[91,32,88,46],[44,30,52,42]].map(([x1,y1,x2,y2])=>`<path d="M${x1} ${y1}q${(x2-x1)/2+3} ${(y2-y1)/2} ${x2-x1} ${y2-y1}" stroke="#4e3b2a" stroke-width="3.2" stroke-linecap="round" opacity=".55" fill="none"/>`).join('');
-  return `<svg viewBox="0 0 120 92" aria-hidden="true" class="catsvg">
-   <ellipse cx="62" cy="80" rx="48" ry="8" fill="#000" opacity=".28" filter="url(#bpSoft)"/>
-   <g filter="url(#inkline)">
-    <g class="breath">
-     <path class="tail" d="M100 50c8 14-6 28-30 30-18 1.6-34-2-44-8" fill="none" stroke="#8d7459" stroke-width="11" stroke-linecap="round"/>
-     <path d="M88 72l3 -9M76 77l2 -10M63 79l1 -10M50 78l-1 -9" stroke="#4e3b2a" stroke-width="3" stroke-linecap="round" opacity=".5"/>
-     <path class="tip" d="M30 74c-6-3-9-5-11-8" fill="none" stroke="#3f3024" stroke-width="10" stroke-linecap="round"/>
-     <path d="M20 46C20 24 44 12 68 13s40 14 38 36-22 30-46 30S20 66 20 46z" fill="#9b8266" ${ink}/>
-     <path d="M30 34C40 20 60 14 80 17" fill="none" stroke="#6e5944" stroke-width="10" stroke-linecap="round" opacity=".55"/>
-     ${stripes}
-     <path d="M30 52c4 12 16 18 30 18 6 0 10-1 13-3-14-2-26-10-30-22z" fill="#f4ede0" opacity=".95"/>
-    </g>
-    <g class="head">
-     <path d="M17 39l-3-15 11 8zM39 31l6-13 3 15z" fill="#8a7158" ${ink}/>
-     <path d="M17.6 36l-1.6-8 6 4.4zM40 30l3.6-7.4 1.4 8z" fill="#e7b0a4"/>
-     <ellipse cx="30" cy="46" rx="17" ry="14.5" fill="#9b8266" ${ink}/>
-     <path d="M24 40l2-5 2 5 2-5 2 5M18 42c3 1 4 3 4 5M42 42c-3 1-4 3-4 5" fill="none" stroke="#4e3b2a" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
-     <path d="M22 52c2 7 14 7 16 0-2-3-6-4-8-4s-6 1-8 4z" fill="#f4ede0"/>
-     <path class="lid l" d="M20.5 46.5q3.4 2.6 6.8 0" fill="none" stroke="#2b1f16" stroke-width="1.5" stroke-linecap="round"/>
-     <path class="lid r" d="M33 46.5q3.4 2.6 6.8 0" fill="none" stroke="#2b1f16" stroke-width="1.5" stroke-linecap="round"/>
-     <g class="eye"><ellipse cx="36.4" cy="46" rx="3.2" ry="2.4" fill="#8fbf5a" stroke="#2b1f16" stroke-width=".9"/><ellipse cx="36.4" cy="46" rx=".7" ry="2" fill="#1a1410"/></g>
-     <path d="M28.6 50.4h2.8l-1.4 1.6z" fill="#d98a86"/>
-     <path d="M21 52l-9-1M21 54l-8 2M39 52l9-1M39 54l8 2" stroke="#fff" stroke-opacity=".7" stroke-width=".6"/>
-    </g>
-    <path d="M26 64c-4 0-6 3-4 5s7 1 8-1zM36 65c-4 0-5 3-3 5s7 0 7-2z" fill="#f8f2e6" ${ink}/>
-   </g></svg>`;
-}
-function alfieSVG(){
-  const ink='stroke="#0e0b0c" stroke-opacity=".6" stroke-width="1" stroke-linejoin="round"';
-  return `<svg viewBox="0 0 210 74" aria-hidden="true" class="catsvg">
-   <ellipse cx="110" cy="66" rx="96" ry="7" fill="#000" opacity=".3" filter="url(#bpSoft)"/>
-   <g filter="url(#inkline)">
-    <path class="tail" d="M168 44c14 2 26 0 36-6" fill="none" stroke="#1e1a1c" stroke-width="7.5" stroke-linecap="round"/>
-    <path d="M150 50l26 8c4 1 6 4 3 6l-6 0-26-6z" fill="#1e1a1c" ${ink}/><path d="M172 58c4 0 8 2 7 5h-8z" fill="#f6f1ea"/>
-    <g class="breath">
-     <path d="M54 34c6-12 28-16 56-15 28 1 50 4 58 14 6 8 2 20-10 24-20 5-62 6-86 2-14-2-22-12-18-25z" fill="#1e1a1c" ${ink}/>
-     <path d="M62 50c18 6 60 7 88 3 6-1 10-3 12-6-6 10-30 12-56 12-24 0-38-2-44-9z" fill="#f6f1ea"/>
-     <path d="M70 28c20-6 50-6 74-2" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="4" stroke-linecap="round"/>
-    </g>
-    <g class="paw">
-     <path d="M58 46L22 52c-5 1-6 7 0 8l38-2z" fill="#f6f1ea" ${ink}/>
-     <path d="M40 49.6l12-1.8 1 9-12 .6z" fill="#1e1a1c"/>
-    </g>
-    <path d="M60 40L26 40c-5 0-6 6 0 7l36 2z" fill="#f6f1ea" ${ink}/>
-    <g class="head">
-     <path d="M30 18l-2-15 12 9zM52 14l10-10 0 15z" fill="#1e1a1c" ${ink}/>
-     <path d="M31 15l-1-8 6 5zM54 13l5-5v7z" fill="#d99a96"/>
-     <ellipse cx="44" cy="30" rx="19" ry="16" fill="#1e1a1c" ${ink}/>
-     <path d="M44 22c-3 4-7 10-10 16 3 5 17 5 20 0-3-6-7-12-10-16z" fill="#f6f1ea"/>
-     <path d="M41.6 35.4c1-1.2 3.8-1.2 4.8 0-.4 1.8-1.6 2.8-2.4 2.8s-2-1-2.4-2.8z" fill="#1e1a1c"/>
-     <ellipse cx="44" cy="42.6" rx="3" ry="1.8" fill="#1e1a1c"/>
-     <path class="lid l" d="M33.5 29q3.2 2.4 6.4 0" fill="none" stroke="#9a9184" stroke-width="1.4" stroke-linecap="round"/>
-     <path class="lid r" d="M48 29q3.2 2.4 6.4 0" fill="none" stroke="#9a9184" stroke-width="1.4" stroke-linecap="round"/>
-     <g class="eye"><ellipse cx="51.2" cy="29" rx="3" ry="2.3" fill="#c9cf5a" stroke="#0e0b0c" stroke-width=".9"/><ellipse cx="51.2" cy="29" rx=".7" ry="1.9" fill="#0e0b0c"/></g>
-     <path d="M36 37l-11-2M36 39l-10 3M52 37l11-2M52 39l10 3" stroke="#fff" stroke-opacity=".75" stroke-width=".6"/>
-    </g>
-   </g></svg>`;
-}
-const CATS_ON=()=>!$('#game').hidden&&G;
-/* place both cats on the rim of the pot, wherever nothing important sits */
-function placeCats(g,avoid,W,H){
-  let wrap=$('#cats');
-  if(!wrap){
-    wrap=document.createElement('div');wrap.id='cats';
-    wrap.innerHTML=`<button type="button" class="cat sylvie" data-cat="Sylvie" title="Sylvie" aria-label="Sylvie">${sylvieSVG()}</button><button type="button" class="cat alfie" data-cat="Alfie" title="Alfie" aria-label="Alfie">${alfieSVG()}</button>`;
-    $('#bigpot').after(wrap);
-  }
-  /* candidates: [angle on the pot, distance from centre (1 = rim), size] — first one that clears everything wins */
-  const phone=W<640;
-  const spots=[[$('.cat.sylvie'),phone?70:112,phone?[[-2.42,.99,1],[3.0,.7,1],[-.72,.99,1],[.1,.72,1],[2.9,.74,.85]]:[[-2.42,.99,1],[-.72,.99,1],[-2.3,.97,.85],[2.5,.97,1],[.62,.97,1]]],
-               [$('.cat.alfie'),phone?96:190,phone?[[-.15,.65,1],[-.15,.65,.85],[.1,.72,1],[-.6,.99,1],[3.0,.7,1],[-2.5,.99,1],[.12,.74,.82]]:[[-.72,.99,1],[-2.42,.99,1],[-.82,.97,.82],[2.62,.96,.85],[.5,.97,.85]]]];
-  const used=[];
-  spots.forEach(([el,w0,cands])=>{
-    const alfie=el.classList.contains('alfie');let ok=false;
-    for(const [a,rf,k] of cands){
-      const w=w0*k,h=w*(alfie?74/210:92/120);
-      const x=g.cx+Math.cos(a)*g.rx*rf,y=g.cy+Math.sin(a)*g.ry*rf;
-      const box={l:x-w/2,r:x+w/2,t:y-h*.7,b:y+h*.3};
-      if(box.l<4||box.r>W-4||box.t<4||box.b>H-4)continue;
-      if([...avoid,...used].some(b=>!(box.r<b.l||box.l>b.r||box.b<b.t||box.t>b.b)))continue;
-      let rot=0;
-      if(rf>.9){rot=Math.atan2(Math.cos(a)*g.ry,-Math.sin(a)*g.rx)*180/Math.PI;if(rot>90)rot-=180;if(rot<-90)rot+=180;rot*=alfie?.55:.3}
-      el.style.cssText=`left:${(x-w/2).toFixed(0)}px;top:${(y-h*.7).toFixed(0)}px;width:${w.toFixed(0)}px;--cr:${rot.toFixed(1)}deg`;
-      used.push(box);ok=true;break;
-    }
-    el.hidden=!ok;
-  });
-}
-/* the cats notice the table */
-function catsNotice(kind){
-  if(RM.matches)return;
-  const s=$('.cat.sylvie'),a=$('.cat.alfie');
-  const play=(el,cls,ms)=>{if(!el||el.hidden)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);clearTimeout(el['_'+cls]);el['_'+cls]=setTimeout(()=>el.classList.remove(cls),ms)};
-  if(kind==='card'){play(s,'twitch',700);if(Math.random()<.35)play(s,'peek',1600);if(Math.random()<.25)play(a,'reach',1100)}
-  if(kind==='turn')play(s,'flick',1300);
-  if(kind==='win')play(a,'roll',2600);
-}
-function petCat(el){
-  sfx.purr();buzz(15);
-  const play=(cls,ms)=>{el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms)};
-  play('blink',1400);
-  if(RM.matches)return;
-  const p=$('#pot');if(!p)return;
-  for(let i=0;i<3;i++){const f=document.createElement('div');f.className='paw-steam';f.style.left=(38+i*9+rnd(-3,3))+'%';f.style.animationDelay=(i*.35)+'s';f.innerHTML='<svg viewBox="0 0 24 24"><ellipse cx="12" cy="15" rx="5" ry="4.2"/><circle cx="6.4" cy="9" r="2.1"/><circle cx="10.2" cy="6.2" r="2.1"/><circle cx="14" cy="6.2" r="2.1"/><circle cx="17.6" cy="9" r="2.1"/></svg>';p.appendChild(f);setTimeout(()=>f.remove(),4200)}
-}
 
 /* =============================== LIVING BROTH (WebGL) =============================== */
 /* One small fragment shader laid over the painted pot: a slow sheen that swirls round the well, chili-oil
@@ -1874,10 +1723,10 @@ function bloop({t=0,v=.06,out}={}){
 }
 const PENTA=[293.66,329.63,369.99,440,493.88]; // D major pentatonic
 const note=(i)=>PENTA[((i%5)+5)%5]*Math.pow(2,Math.floor(i/5));
-/* real recorded foley (CC0 Kenney packs, a public-domain purr, a CC0 simmer loop; see music/LICENSES.md).
+/* real recorded foley (CC0 Kenney packs, a CC0 simmer loop; see music/LICENSES.md).
    Each sound has a few takes; one is picked at random. If the files can't load, the synth versions play. */
 const SFX_FILES={pick:['slide1','slide2','slide3','slide4'],drop:['place1','place2','place3','place4'],flip:['shove1','shove2','shove3'],
-  deal:['shuffle'],bowl:['bowl1','bowl2','bowl3'],ladle:['ladle1','ladle2','ladle3'],page:['page1','page2','page3'],coin:['coin'],stamp:['stamp'],purr:['purr'],simmer:['simmer']};
+  deal:['shuffle'],bowl:['bowl1','bowl2','bowl3'],ladle:['ladle1','ladle2','ladle3'],page:['page1','page2','page3'],coin:['coin'],stamp:['stamp'],simmer:['simmer']};
 const SB={};
 function loadSfx(){
   if(SB._go)return;SB._go=1;const c=audio();if(!c)return;
@@ -1910,7 +1759,6 @@ const sfx={
   page:()=>{if(!samp('page',{v:.3*wv(),rate:wp()}))rustle({d:.2,f:2000,f2:900,v:.08})},
   coin:()=>{samp('coin',{v:.35})},
   ladle:()=>{if(!samp('ladle',{v:.3*wv(),rate:wp()}))pluck(note(14),{v:.05,bright:.95,dur:.9})},
-  purr:()=>{if(!samp('purr',{v:.7}))thump({f:70,v:.15,d:.6})},
   count:k=>{pluck(note(4+k),{v:.035,bright:.75,dur:.5})},
   turn:()=>{pluck(note(5),{v:.16});pluck(note(7),{t:.11,v:.13})},
   tick:(k=0)=>{const p=1+k*.06;rustle({d:.035,f:2200*p,f2:2000*p,q:9,v:.1+k*.008})},
@@ -2158,9 +2006,6 @@ function fitPot(){
   const pad=(b,m)=>({l:b.l-m,r:b.r+m,t:b.t-m,b:b.b+m}),avoid=[pad(q('#me'),18),...['#opp1','#opp2','#opp3'].map(x=>pad(q(x),24))];
   s.innerHTML=bigPotSVG(W,H,{cx,cy,rx,ry,wx,wy,wrx,wry,dirs,avoid});
   const la=-.72;s._g={cx,cy,rx,ry,wx,wy,wrx,wry,lx:wx+Math.cos(la)*wrx*.74,ly:wy+Math.sin(la)*wry*.74};
-  /* the cats keep clear of everything you read or touch: boxes of the real visible pieces, not their layout rows */
-  const keep=[...document.querySelectorAll('#game .hud *,#game .slip,#game .opp *,#me *,#felt *')].filter(x=>!(x.parentElement&&x.parentElement.closest('svg'))).map(x=>rel(x)).filter(b=>b.r-b.l>2&&b.b-b.t>2&&b.r-b.l<W*.6&&b.b-b.t<H*.45).map(b=>pad(b,10));
-  placeCats(s._g,keep,W,H);
   const ang=dirs.map(([x,y])=>Math.atan2(y-wy,x-wx));let span=ang[1]-ang[0];if(span<0)span+=Math.PI*2;
   brothFit(s._g,W,H,[ang[0],span]);
 }
@@ -2197,10 +2042,36 @@ function touchTable(e){
   bloop({v:.045});if(Math.random()<.5)bloop({t:.07,v:.03});
   if(still)return true;
   const r=document.createElement('i');r.className='bripple';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';$('#layer').appendChild(r);setTimeout(()=>r.remove(),1300);
-  s.querySelectorAll('.bit').forEach(b=>{const q=b.getBoundingClientRect(),dx=q.left+q.width/2-e.clientX,dy=q.top+q.height/2-e.clientY,d=Math.hypot(dx,dy);
-    if(d>110||d<1)return;const k=(110-d)/110*14;
-    b.animate([{transform:'translate(0,0)'},{transform:`translate(${(dx/d*k).toFixed(1)}px,${(dy/d*k*.7).toFixed(1)}px) rotate(${(rnd(-12,12)).toFixed(0)}deg)`,offset:.3},{transform:'translate(0,0)'}],{duration:1400+d*4,easing:'cubic-bezier(.2,.7,.3,1)',composite:'add'})});
+  floatPush(e.clientX,e.clientY);
   return true;
+}
+/* floating garnish: each piece is pushed by the tap, then by the ripple as it passes, carries its momentum,
+   slows in the broth, eases back to where it floated with a little overshoot, and keeps a gentle spin */
+const FL={on:false,list:new Set(),t:0};
+function floatPush(cx,cy){
+  const s=$('#bigpot');if(!s||RM.matches)return;
+  const R=170,WAVE=320; // reach in px; how fast the ripple ring travels, px/s
+  s.querySelectorAll('.fl').forEach(el=>{
+    const q=el.getBoundingClientRect(),st=el._f||(el._f={x:0,y:0,vx:0,vy:0,r:0,vr:0});
+    const dx=q.left+q.width/2-cx,dy=q.top+q.height/2-cy,d=Math.hypot(dx,dy)||1;if(d>R)return;
+    const f=(1-d/R)**2,ux=dx/d,uy=dy/d*.8;
+    const kick=(k)=>{st.vx+=ux*k;st.vy+=uy*k;st.vr+=(Math.random()-.5)*k*.9;FL.list.add(el);floatRun()};
+    kick(150*f);                                   // the push of the tap itself
+    setTimeout(()=>el.isConnected&&kick(55*f),d/WAVE*1000); // the ripple reaching it a moment later
+  });
+}
+function floatRun(){if(FL.on)return;FL.on=true;FL.t=performance.now();requestAnimationFrame(floatStep)}
+function floatStep(now){
+  const dt=Math.min(.04,(now-FL.t)/1000);FL.t=now;
+  const K=6.5,C=3.1,CR=1.6; // spring back, drag in the broth, drag on spin
+  FL.list.forEach(el=>{
+    const st=el._f;if(!el.isConnected){FL.list.delete(el);return}
+    st.vx+=(-K*st.x-C*st.vx)*dt;st.vy+=(-K*st.y-C*st.vy)*dt;st.x+=st.vx*dt;st.y+=st.vy*dt;
+    st.vr+=-CR*st.vr*dt;st.r+=st.vr*dt;
+    el.style.transform=`translate(${st.x.toFixed(2)}px,${st.y.toFixed(2)}px) rotate(${st.r.toFixed(1)}deg)`;
+    if(Math.abs(st.x)+Math.abs(st.y)<.05&&Math.abs(st.vx)+Math.abs(st.vy)<.5&&Math.abs(st.vr)<.5)FL.list.delete(el);
+  });
+  if(FL.list.size)requestAnimationFrame(floatStep);else FL.on=false;
 }
 /* steam leans away from a hovering hand */
 document.addEventListener('pointermove',e=>{
@@ -2298,7 +2169,7 @@ function take(seat,src){
   if(src==='pile'){card=G.draw.pop();from='the pot'}
   else{card=G.players[src].discards.pop();from=G.players[src].human?'you':G.players[src].name}
   p.hand.push(card);G.drawn=card;G.phase='discard';G.fresh.add(card.id);
-  sfx.pick();catsNotice('card');
+  sfx.pick();
   const who=p.human?'You':p.name;
   logMsg(src==='pile'?`${who} drew from the pot`:`${who} took ${from==='you'?'your':from+"'s"} ${nameOf(card.t)}`);
   if(canWin(p.hand)){declareWin(seat);return true}
@@ -2310,7 +2181,7 @@ function discard(seat,cardId){
   if(i<0)return;
   if(seat===0&&!HP.autoHuman)buzz(12);
   const [card]=p.hand.splice(i,1);p.discards.push(card);G.fresh.add(card.id);
-  sfx.drop();catsNotice('card');logMsg(`${p.human?'You':p.name} discarded ${nameOf(card.t)}`);
+  sfx.drop();logMsg(`${p.human?'You':p.name} discarded ${nameOf(card.t)}`);
   G.drawn=null;G.sel=null;
   if(!G.draw.length){endGame(null);return}
   G.turn=(G.turn+1)%4; if(G.turn===0)G.round++;
@@ -2366,7 +2237,7 @@ function moment(kind,name){
   }
 }
 function declareWin(seat){
-  G.over=true;G.winner=seat;stopLoops();catsNotice('win');
+  G.over=true;G.winner=seat;stopLoops();
   if(seat===0&&!G.online)buzz([25,60,25,60,90]);
   const p=G.players[seat];
   logMsg(`${p.human?'You':p.name} completed three sets`);
@@ -2534,7 +2405,7 @@ function render(){
   // little cues carried by motion: someone took from your pile; whose turn it is now
   const n0=G.players[0].discards.length;
   if(G._n0!=null&&n0<G._n0&&G.turn!==0)tookCue(G.turn);
-  if(G._lt!=null&&G.turn!==G._lt&&!G.over){turnGlow(G._lt,G.turn);if(G.turn===0)catsNotice('turn')}
+  if(G._lt!=null&&G.turn!==G._lt&&!G.over){turnGlow(G._lt,G.turn)}
   G._n0=n0;G._lt=G.turn;
   G.fresh.clear();
 }
@@ -2744,8 +2615,6 @@ document.addEventListener('click',e=>{
     else{ripple(e);sfx.bubbles();const now=performance.now();potTaps=now-potT<1600?potTaps+1:1;potT=now;if(potTaps===5){potTaps=0;heartSteam();setTimeout(()=>sfx.chime(4),300)}}
     return;
   }
-  const ct=e.target.closest('.cat');
-  if(ct){petCat(ct);return}
   const os=e.target.closest('.opp .seal');
   if(os&&G&&!modal){const k=+os.id.slice(2)||1;sfx.chime(k+1);if(!RM.matches)os.animate([{transform:'none'},{transform:'rotate(-9deg) scale(1.08)',offset:.3},{transform:'rotate(5deg)',offset:.6},{transform:'none'}],{duration:620,easing:'ease-out'});return}
   if(G&&!modal&&!e.target.closest('button,a,.card,.pile,.deck,.opp,#me,.hud,.slipwrap,.tools,.modal,[data-act]')&&touchTable(e))return;
