@@ -595,7 +595,7 @@ button.card{cursor:pointer}
 #broth{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
 #bigpot .bit{animation:drift var(--bd,9s) ease-in-out infinite;animation-delay:var(--bdl,0s)}
 @keyframes drift{50%{transform:translate(var(--bx,4px),var(--by,3px))}}
-.pot{width:calc(var(--pw)*3);aspect-ratio:1;border-radius:50%}
+.pot{width:calc(var(--pw)*3);aspect-ratio:1;border-radius:50%;cursor:default}
 .pot>svg.vortex{position:absolute;inset:-8%;width:116%;height:116%;animation:whirl 46s linear infinite;will-change:transform}
 @keyframes whirl{to{transform:rotate(360deg)}}
 .pot>svg.steam{bottom:40%;width:70%}
@@ -1473,13 +1473,18 @@ function bigPotSVG(W,H,g){
     <circle cx="6" cy="5" r="2.2" fill="#7fbf4c"/><circle cx="-6" cy="7" r="1.6" fill="#ffd27a" opacity=".6"/>
   </g></g>`;
   let bits='';
-  const nb=Math.round(28*Math.min(1.4,W*H/1e6)+8);
-  for(let c=0;c<nb;c++){
-    const t=.5+R()*.42,a=R()*6.283,x0=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y0=wy+Math.sin(a)*(wry+(ry-wry)*t),n=2+((R()*4)|0);
-    for(let j=0;j<n;j++){const x=x0+(R()-.5)*60,y=y0+(R()-.5)*36;
-      if((g.avoid||[]).some(b=>x>b.l&&x<b.r&&y>b.t&&y<b.b)||((x-cx)/rx)**2+((y-cy)/ry)**2>.9||((x-wx)/(wrx+14))**2+((y-wy)/(wry+14))**2<1)continue;
-      bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px"><g class="fl" style="transform-origin:${f1(x)}px ${f1(y)}px">${bit(x,y,sc*(1.6+R()*.6))}</g></g>`}
+  /* garnish spread over every broth like it settled there: Poisson-disc spacing (no two closer than a minimum,
+     the minimum itself varying a little), the odd piece drifting next to a neighbour, never under anything you read or touch */
+  const ok=(x,y)=>x>6&&x<W-6&&y>6&&y<H-6&&((x-cx)/rx)**2+((y-cy)/ry)**2<.88&&((x-wx)/(wrx+16))**2+((y-wy)/(wry+16))**2>1&&!(g.avoid||[]).some(b=>x>b.l&&x<b.r&&y>b.t&&y<b.b);
+  const md=Math.max(W<640?44:58,Math.min(92,W/19)),cap=Math.max(26,Math.round(W*H/24000)),pts=[];
+  const apart=(x,y,m)=>pts.every(p=>(p[0]-x)**2+(p[1]-y)**2>=m*m);
+  for(let i=0;i<4000&&pts.length<cap;i++){
+    let x,y;
+    if(pts.length&&R()<.12){const q=pts[(R()*pts.length)|0],a=R()*6.283,d=md*(.3+R()*.15);x=q[0]+Math.cos(a)*d;y=q[1]+Math.sin(a)*d*.8;if(!ok(x,y)||!apart(x,y,md*.28))continue}
+    else{x=cx+(R()*2-1)*rx;y=cy+(R()*2-1)*ry;if(!ok(x,y)||!apart(x,y,md*(.85+R()*.5)))continue}
+    pts.push([x,y]);
   }
+  pts.forEach(([x,y])=>{bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px"><g class="fl" style="transform-origin:${f1(x)}px ${f1(y)}px">${bit(x,y,sc*(1.5+R()*.7))}</g></g>`});
   // iron dividers: from the lip of the well out to the rim, with a little cloud scroll where they meet the well
   let divs='';
   dirs.forEach((_,k)=>{
@@ -2003,7 +2008,9 @@ function fitPot(){
   const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];
   const dirs=[mid([o2.l,o2.cy],[o3.cx,o3.t]),mid([o2.r,o2.cy],[o1.cx,o1.t]),mid([o1.cx,o1.b],[hd.r,hd.t]),mid([o3.cx,o3.b],[hd.l,hd.t])];
   s.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  const pad=(b,m)=>({l:b.l-m,r:b.r+m,t:b.t-m,b:b.b+m}),avoid=[pad(q('#me'),18),...['#opp1','#opp2','#opp3'].map(x=>pad(q(x),24))];
+  const pad=(b,m)=>({l:b.l-m,r:b.r+m,t:b.t-m,b:b.b+m});
+  /* keep garnish off what you read or touch: boxes of the visible pieces themselves, not their (full-width) layout rows */
+  const avoid=[...document.querySelectorAll('#game .hud *,#game .slip,#game .opp *,#me *,#felt .pile,#felt .deck')].filter(x=>!(x.parentElement&&x.parentElement.closest('svg'))).map(rel).filter(b=>b.r-b.l>2&&b.b-b.t>2&&b.r-b.l<W*.6&&b.b-b.t<H*.45).map(b=>pad(b,14));
   s.innerHTML=bigPotSVG(W,H,{cx,cy,rx,ry,wx,wy,wrx,wry,dirs,avoid});
   const la=-.72;s._g={cx,cy,rx,ry,wx,wy,wrx,wry,lx:wx+Math.cos(la)*wrx*.74,ly:wy+Math.sin(la)*wry*.74};
   const ang=dirs.map(([x,y])=>Math.atan2(y-wy,x-wx));let span=ang[1]-ang[0];if(span<0)span+=Math.PI*2;
@@ -2611,8 +2618,7 @@ document.addEventListener('click',e=>{
   const cardB=e.target.closest('#hand .card, .drawn .card');
   if(cardB&&G&&!modal){selectCard(+cardB.dataset.id);return}
   if(e.target.closest('#pot')){
-    if(G&&G.turn===0&&G.phase==='draw'&&!G.over&&!modal){ripple(e);humanTake('pile')}
-    else{ripple(e);sfx.bubbles();const now=performance.now();potTaps=now-potT<1600?potTaps+1:1;potT=now;if(potTaps===5){potTaps=0;heartSteam();setTimeout(()=>sfx.chime(4),300)}}
+    {ripple(e);sfx.bubbles();const now=performance.now();potTaps=now-potT<1600?potTaps+1:1;potT=now;if(potTaps===5){potTaps=0;heartSteam();setTimeout(()=>sfx.chime(4),300)}}
     return;
   }
   const os=e.target.closest('.opp .seal');
