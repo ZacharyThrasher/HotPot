@@ -832,6 +832,12 @@ button.card{cursor:pointer}
   .ex .ok,.ex .no{font-size:14px;gap:3px;line-height:1.05}
   .ex .ok svg,.ex .no svg{width:15px;height:15px;flex:none}
 }
+.pile .pname{position:relative;z-index:7}
+@media (min-width:901px){.catrow{--cw:66px}}
+@media (max-width:640px){
+  .line .hanko{right:auto;left:26px;top:-12px}
+  .pile .cnt{right:calc(var(--pw)*-.62);bottom:calc(var(--pw)*-.3)}
+}
 .drawn .newnote{transition:opacity .25s ease .1s}.drawn.flying .newnote{opacity:0;transition:none}
 </style>
 
@@ -1821,6 +1827,7 @@ function startTurn(){
 }
 function logMsg(s){G.log.unshift(s);G.log.length=Math.min(G.log.length,3)}
 function take(seat,src){
+  if(!G||G.over||G.turn!==seat||G.phase!=='draw')return true; // a late timer from an earlier turn
   const p=G.players[seat];let card,from;
   if(src==='pile'){card=G.draw.pop();from='the pot'}
   else{card=G.players[src].discards.pop();from=G.players[src].human?'you':G.players[src].name}
@@ -1832,6 +1839,7 @@ function take(seat,src){
   render();return false;
 }
 function discard(seat,cardId){
+  if(!G||G.over||G.turn!==seat||G.phase!=='discard')return; // e.g. the timeout's auto-toss after you already tossed
   const p=G.players[seat],i=p.hand.findIndex(c=>c.id===cardId);
   if(i<0)return;
   const [card]=p.hand.splice(i,1);p.discards.push(card);G.fresh.add(card.id);
@@ -2110,7 +2118,7 @@ function helpModal(tab='rules'){
    ${step(2,'toss','<b>Toss one back</b> onto your pile, so you’re holding eight again. Then it’s the next person’s go, round to your right.')}
    ${step(3,'win','<b>Make three sets of three</b> and you’ve got hotpot. The ninth card always comes from a draw, so nobody wins off the deal.')}
   </ol>
-  <div class="ex">${ex([0,0,0],'three of a kind',1)}${ex([0,1,2],'one colour, three foods',1)}${ex([0,0,1],'not a set',0)}</div>
+  <div class="ex">${ex([0,0,0],'three alike',1)}${ex([0,1,2],'one colour',1)}${ex([0,0,1],'not a set',0)}</div>
   <p class="say">At the end, everyone counts the sets in their hand: three of a kind is worth <em>120</em>, a colour set <em>60</em>, and whoever called hotpot gets <em>100</em> more. If the pot runs dry first, nobody wins.</p>
   <p class="say small">There are 96 cards: 8 colours, 3 foods in each, 4 of every food. You get 45 seconds a turn, and what the others throw away tells you what they’re keeping.</p>
   <p class="say small threadkey">In your hand, a <i class="tk" style="--kc:var(--sage)"></i> green thread ties a three of a kind, a <i class="tk" style="--kc:var(--sky)"></i> blue one ties a colour set, and a little <i class="tkd"></i> honey dot means that card is one away from a set.</p>
@@ -2149,7 +2157,7 @@ function showResults(){
   const title=G.winner==null?'The pot ran dry':won?'You won the hotpot!':esc(G.players[G.winner].name)+' won this one';
   const mood=i=>G.winner==null?'':G.winner===i?'happy':'';
   const lineCards=bs=>`${bs.sets.map(s=>`<span class="set ${s.kind==='triple'?'s':'c'}">${s.cards.map(c=>cardHTML(c,{cls:'flat'})).join('')}</span>`).join('')}${bs.left.length?`<span class="set left">${bs.left.map(c=>cardHTML(c,{cls:'flat dim'})).join('')}</span>`:''}`;
-  openModal(`<div class="billhead"><h2>${title}</h2><p class="billsub">${G.winner==null?'Nobody made three sets before the pot ran out, so everyone keeps what they hold.':`Table for four, round ${G.round}. Here’s what everyone was holding.`}</p></div>
+  openModal(`<div class="billhead"><h2>${title}</h2><p class="billsub">${G.winner==null?'Nobody made three sets before the pot ran out, so nobody wins this round.':`Table for four, round ${G.round}. Here’s what everyone was holding.`}</p></div>
   <div class="lines">${rows.map((r,k)=>`<div class="line ${G.winner===r.i?'win':''}" style="--d:${(k*.09).toFixed(2)}s">
     ${sealHTML(r.p.name,r.p.color,seedOf(r.p.name)+r.i,'sm '+mood(r.i),'',r.i===0&&!G.online?true:r.p.color===ME_COLOR)}
     <div class="lwho"><b>${r.i===0?'You':esc(r.p.name)}</b><small>${r.bs.sets.length?r.bs.sets.map(s=>s.kind==='triple'?'120':'60').join(' + '):'no sets'}${r.bonus?`<br>+${r.bonus} hotpot!`:''}</small></div>
