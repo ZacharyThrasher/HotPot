@@ -269,7 +269,7 @@ input,textarea{caret-color:var(--lacq)}
 /* the table */
 .mid{min-height:0;display:flex;align-items:stretch;justify-content:center;gap:4px;position:relative}
 .felt{flex:1;min-width:0;position:relative;display:grid;place-items:center;container-type:size}
-.tbl{position:absolute;left:50%;top:50%;width:var(--tw);height:var(--th);transform:translate(-50%,-50%);overflow:visible;pointer-events:none}
+.tbl{display:none;position:absolute;left:50%;top:50%;width:var(--tw);height:var(--th);transform:translate(-50%,-50%);overflow:visible;pointer-events:none}
 .ring-seats{position:absolute;left:50%;top:50%;width:var(--tw);height:var(--th);transform:translate(-50%,-50%);--pw:clamp(36px,min(15cqh,9.6cqw),100px)}
 .ring-seats>[class^="cell-"]{position:absolute;transform:translate(-50%,-50%)}
 .cell-b{left:50%;top:82%}.cell-t{left:50%;top:17%}.cell-l{left:16%;top:50%}.cell-r{left:84%;top:50%}
@@ -330,7 +330,7 @@ input,textarea{caret-color:var(--lacq)}
 
 /* your side */
 #me{display:grid;gap:4px;justify-items:center;position:relative;z-index:4;padding:4px 8px 0;--cw:clamp(54px,min(calc((100vw - 140px)/10.2),12.5vh),116px)}
-#me::before{content:"";position:absolute;left:-16px;right:-16px;top:18%;bottom:-12px;z-index:-1;background:radial-gradient(60% 100% at 50% 100%,rgba(20,10,8,.62),transparent 75%);pointer-events:none}
+#me::before{display:none;content:"";position:absolute;left:-16px;right:-16px;top:18%;bottom:-12px;z-index:-1;background:radial-gradient(60% 100% at 50% 100%,rgba(20,10,8,.62),transparent 75%);pointer-events:none}
 .mehand{display:flex;align-items:flex-end;justify-content:center;gap:clamp(10px,2vw,26px);width:100%}
 .hand{display:flex;align-items:flex-end;justify-content:center;padding-top:22px}
 .hand .card{margin-left:5px;transform:translateY(var(--ay,0px)) rotate(var(--ar,0deg));transform-origin:50% 140%;transition:transform .22s cubic-bezier(.3,1.5,.5,1),filter .2s}
@@ -585,6 +585,31 @@ button.card{cursor:pointer}
 }
 @media (prefers-reduced-motion:reduce){.seal .eyes,.seal>svg.face{animation:none!important}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.fireflies,.skylantern,.petal{display:none}}
+
+/* the great pot, seen from above */
+#bigpot{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:block}
+#bigpot .bit{animation:drift var(--bd,9s) ease-in-out infinite;animation-delay:var(--bdl,0s)}
+@keyframes drift{50%{transform:translate(var(--bx,4px),var(--by,3px))}}
+.pot{width:calc(var(--pw)*3);aspect-ratio:1;border-radius:50%}
+.pot>svg.vortex{position:absolute;inset:-8%;width:116%;height:116%;animation:whirl 46s linear infinite;will-change:transform}
+@keyframes whirl{to{transform:rotate(360deg)}}
+.pot>svg.steam{bottom:40%;width:70%}
+.pot.take{animation:none}
+.deck{left:calc(50% - var(--pw)/2);top:calc(50% - var(--pw)*.7)}
+.pile .pname{display:none}
+.deck .lbl{display:none}
+.pile.take .pname,.pile.mine .pname{display:flex}
+.pile.take .pname{font-size:0}.pile.take .pname::after{font-size:15px;margin:0}
+.opp .fan{animation:bobfan 6s ease-in-out infinite}
+#opp1 .fan{animation-delay:-2s}#opp3 .fan{animation-delay:-4s}
+@keyframes bobfan{50%{translate:0 -3px;rotate:.6deg}}
+.key,.mebar .sets>span{text-shadow:0 1px 2px rgba(40,12,0,.9),0 0 8px rgba(40,12,0,.6)}
+@media (prefers-reduced-motion:reduce){#bigpot .bit,.pot>svg.vortex,.opp .fan{animation:none}}
+.sheet .credits{margin:6px 0 10px;padding:0;list-style:none;display:grid;gap:12px;font:400 15px/1.45 var(--f-ui);color:var(--ink2)}
+.sheet .credits li{padding-left:22px;position:relative}
+.sheet .credits li::before{content:"";position:absolute;left:0;top:.35em;width:14px;height:14px;background:var(--lacq);-webkit-mask:var(--blob) 0 0/100% 100%;mask:var(--blob) 0 0/100% 100%;opacity:.8}
+.sheet .credits b{color:var(--ink);font-weight:700}
+.sheet a{color:var(--lacq);text-decoration-thickness:1px;text-underline-offset:2px}
 </style>
 
 <body>
@@ -597,6 +622,7 @@ button.card{cursor:pointer}
   <section id="lobby" aria-labelledby="lobbyTitle"></section>
 
   <section id="game" hidden>
+    <svg id="bigpot" aria-hidden="true"></svg>
     <header class="hud">
       <div class="signs" aria-label="Game info">
         <div class="sign"><span>round</span><b id="hudRound">1</b><b id="hudDeck" hidden>64</b></div>
@@ -1044,6 +1070,131 @@ function faceSVG(f,seed){
   </g></svg>`;
 }
 
+/* =============================== THE BIG POT =============================== */
+/* Seen from above, like leaning over it: one great iron pot split four ways by iron dividers, each player's
+   cards floating on their own broth, the draw pile and discards in the shared well in the middle. */
+const BROTHS=[
+  {c:'#e37a2e',d:'#a8481c',l:'#ffb45c'},  // you: tomato
+  {c:'#dca23f',d:'#a26b1d',l:'#ffd77a'},  // right: golden
+  {c:'#b0331f',d:'#6e170f',l:'#e8603a'},  // top: chilli
+  {c:'#e6d3ad',d:'#a88a5c',l:'#fbf0d8'},  // left: milky bone broth
+];
+function bigPotSVG(W,H,g){
+  const R=seeded(77),{cx,cy,rx,ry,wx,wy,wrx,wry,dirs}=g;
+  const ang=dirs.map(([x,y])=>Math.atan2(y-wy,x-wx));
+  const far=(a,k=5000)=>[wx+Math.cos(a)*k,wy+Math.sin(a)*k];
+  const pt=p=>f1(p[0])+' '+f1(p[1]);
+  // sector k sits between divider k and k+1 (dirs ordered UL, UR, LR, LL) -> top, right, bottom, left
+  const seatOf=[2,1,0,3];
+  let sectors='';
+  for(let k=0;k<4;k++){
+    let a0=ang[k],a1=ang[(k+1)%4];if(a1<a0)a1+=Math.PI*2;
+    const b=BROTHS[seatOf[k]],mid=(a0+a1)/2;
+    sectors+=`<path d="M${f1(wx)} ${f1(wy)}L${pt(far(a0))}L${pt(far(mid))}L${pt(far(a1))}Z" fill="url(#br${k})"/>`;
+  }
+  // gradients: deeper by the well and by the rim, bright in the middle of each sector
+  let defs='';
+  for(let k=0;k<4;k++){const b=BROTHS[seatOf[k]];
+    defs+=`<radialGradient id="br${k}" gradientUnits="userSpaceOnUse" cx="${f1(wx)}" cy="${f1(wy)}" r="${f1(Math.max(rx,ry)*1.05)}"><stop offset=".25" stop-color="${b.d}"/><stop offset=".55" stop-color="${b.c}"/><stop offset=".8" stop-color="${b.l}" stop-opacity=".9"/><stop offset="1" stop-color="${b.d}"/></radialGradient>`}
+  // lazy swirls of oil around the well
+  let swirls='';
+  for(let i=0;i<22;i++){
+    const t=.18+R()*.78,a=R()*6.283,span=.35+R()*.9,erx=wrx+(rx-wrx)*t,ery=wry+(ry-wry)*t;
+    const p0=[wx+Math.cos(a)*erx,wy+Math.sin(a)*ery],p1=[wx+Math.cos(a+span)*erx,wy+Math.sin(a+span)*ery];
+    swirls+=`<path d="M${pt(p0)}A${f1(erx)} ${f1(ery)} 0 0 1 ${pt(p1)}" stroke="${R()<.55?'#fff3c8':'#3a1a08'}" stroke-opacity="${(R()*.1+.06).toFixed(2)}" stroke-width="${f1(4+R()*16)}" fill="none" stroke-linecap="round"/>`;
+  }
+  // bits floating in the broth: chilli flakes, scallion rings, goji, sesame, star anise, oil beads
+  const bit=(x,y,s)=>{
+    const r=R(),rot=(R()*360)|0;
+    if(r<.22)return `<path d="M-3 -1.4q3-1.6 6 0l-.6 2.8q-2.4 1-4.8 0z" fill="#9a1d10" transform="translate(${f1(x)} ${f1(y)}) rotate(${rot}) scale(${s})"/>`;
+    if(r<.4)return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(3.2*s)}" fill="none" stroke="#7fbf4c" stroke-width="${f1(1.7*s)}"/><circle cx="${f1(x-.8*s)}" cy="${f1(y-.9*s)}" r="${f1(1.2*s)}" fill="#d6f0a8" opacity=".6"/>`;
+    if(r<.52)return `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(3.4*s)}" ry="${f1(2*s)}" fill="#d8361e" transform="rotate(${rot} ${f1(x)} ${f1(y)})"/><ellipse cx="${f1(x-1*s)}" cy="${f1(y-.6*s)}" rx="${f1(1.1*s)}" ry="${f1(.6*s)}" fill="#ffb09a"/>`;
+    if(r<.66)return `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="${f1(1.5*s)}" ry="${f1(.9*s)}" fill="#f6e7c4" transform="rotate(${rot} ${f1(x)} ${f1(y)})"/>`;
+    if(r<.7){let d='';for(let j=0;j<8;j++)d+=`<ellipse cx="0" cy="-3.6" rx="1.7" ry="3.3" transform="rotate(${j*45})" fill="#6e3518" stroke="#3e1a08" stroke-width=".5"/><circle cx="0" cy="-4.6" r=".75" transform="rotate(${j*45})" fill="#c08a52"/>`;
+      return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${rot}) scale(${s*.9})">${d}<circle r="1.3" fill="#3e1a08"/></g>`}
+    return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1((2+R()*5)*s)}" fill="#ffe7a0" fill-opacity=".22" stroke="#fff6d8" stroke-opacity=".35" stroke-width=".8"/>`;
+  };
+  // chili oil: little clusters of golden beads, the way oil gathers on a simmering broth
+  let oil='';
+  for(let i=0;i<Math.round(26*Math.min(1.4,W*H/1e6)+8);i++){
+    const t=.1+R()*.8,a=R()*6.283,x0=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y0=wy+Math.sin(a)*(wry+(ry-wry)*t),n=3+((R()*7)|0);
+    for(let j=0;j<n;j++){const x=x0+(R()-.5)*34,y=y0+(R()-.5)*22,r=1.5+R()*R()*9;
+      oil+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#ffd27a" fill-opacity="${(.12+R()*.16).toFixed(2)}"/><path d="M${f1(x-r*.55)} ${f1(y-r*.2)}a${f1(r*.6)} ${f1(r*.6)} 0 0 1 ${f1(r*.5)} ${f1(-r*.45)}" stroke="#fff8e0" stroke-opacity=".55" stroke-width="${f1(Math.max(.6,r*.18))}" fill="none" stroke-linecap="round"/>`}
+  }
+  let wellBits='';
+  for(let i=0;i<9;i++){const t=.3+R()*.6,a=R()*6.283,span=.5+R()*1.1,erx=wrx*t,ery=wry*t;
+    wellBits+=`<path d="M${pt([wx+Math.cos(a)*erx,wy+Math.sin(a)*ery])}A${f1(erx)} ${f1(ery)} 0 0 1 ${pt([wx+Math.cos(a+span)*erx,wy+Math.sin(a+span)*ery])}" stroke="${i%3?'#f0b46a':'#24100a'}" stroke-opacity="${i%3?.12:.25}" stroke-width="${f1(5+R()*9)}" fill="none" stroke-linecap="round"/>`}
+  for(let i=0;i<46;i++){const t=.25+R()*.75,a=R()*6.283,x=wx+Math.cos(a)*wrx*t,y=wy+Math.sin(a)*wry*t,r=1.2+R()*R()*6;
+    wellBits+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#ffc96a" fill-opacity="${(.1+R()*.14).toFixed(2)}"/>`+(R()<.25?`<circle cx="${f1(x+r*2.5)}" cy="${f1(y)}" r="${f1(1.4)}" fill="#7fbf4c" opacity=".8"/>`:'')}
+  const sc=Math.max(.8,Math.min(1.35,W/1100));
+  let bits='';
+  for(let i=0;i<Math.round(110*Math.min(1.3,W*H/1.1e6)+30);i++){
+    const t=.08+R()*.86,a=R()*6.283,x=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y=wy+Math.sin(a)*(wry+(ry-wry)*t);
+    if(((x-cx)/rx)**2+((y-cy)/ry)**2>.9)continue;
+    bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px">${bit(x,y,sc*(.8+R()*.6))}</g>`;
+  }
+  // iron dividers: from the lip of the well out to the rim, with a little cloud scroll where they meet the well
+  let divs='';
+  dirs.forEach((_,k)=>{
+    const a=ang[k],c=Math.cos(a),s=Math.sin(a);
+    const p0=[wx+c*wrx*.98,wy+s*wry*.98];
+    // where this ray meets the rim ellipse
+    const A=(c/rx)**2+(s/ry)**2,B=2*((wx-cx)*c/rx**2+(wy-cy)*s/ry**2),C=((wx-cx)/rx)**2+((wy-cy)/ry)**2-1;
+    const tt=(-B+Math.sqrt(B*B-4*A*C))/(2*A),p1=[wx+c*tt,wy+s*tt];
+    const nx=-s,ny=c,w=Math.max(9,Math.min(16,W/95));
+    divs+=`<path d="M${pt(p0)}L${pt(p1)}" stroke="#1f1814" stroke-width="${f1(w+5)}" stroke-linecap="round" opacity=".55" transform="translate(3 6)" filter="url(#bpSoft)"/>
+      <path d="M${pt(p0)}L${pt(p1)}" stroke="#3a302a" stroke-width="${f1(w)}" stroke-linecap="round"/>
+      <path d="M${pt([p0[0]+nx*w*.22,p0[1]+ny*w*.22])}L${pt([p1[0]+nx*w*.22,p1[1]+ny*w*.22])}" stroke="#7d6e62" stroke-width="${f1(w*.22)}" stroke-linecap="round" opacity=".7"/>
+      <g transform="translate(${pt(p0)}) rotate(${(a*180/Math.PI).toFixed(1)})"><path d="M${f1(-w*.3)} ${f1(-w*1.1)}C${f1(w*1.2)} ${f1(-w*1.2)} ${f1(w*2.2)} ${f1(-w*.7)} ${f1(w*2.6)} 0C${f1(w*2.2)} ${f1(w*.7)} ${f1(w*1.2)} ${f1(w*1.2)} ${f1(-w*.3)} ${f1(w*1.1)}Z" fill="#3a302a" stroke="#1d1612" stroke-width="1.2"/><path d="M${f1(w*.1)} ${f1(-w*.8)}C${f1(w*1.1)} ${f1(-w*.85)} ${f1(w*1.8)} ${f1(-w*.5)} ${f1(w*2.1)} ${f1(-w*.1)}" fill="none" stroke="#8f8073" stroke-width="1.3" stroke-linecap="round" opacity=".7"/><circle cx="${f1(w*.75)}" cy="${f1(-w*.42)}" r="${f1(w*.17)}" fill="#8f8073"/><circle cx="${f1(w*.75)}" cy="${f1(w*.42)}" r="${f1(w*.17)}" fill="#8f8073"/></g>
+      <circle cx="${f1(p1[0]-c*w*.7)}" cy="${f1(p1[1]-s*w*.7)}" r="${f1(w*.32)}" fill="#5f544c" stroke="#1d1612" stroke-width="1"/><circle cx="${f1(p1[0]-c*w*.7-1)}" cy="${f1(p1[1]-s*w*.7-1)}" r="${f1(w*.12)}" fill="#a39385"/>`;
+  });
+  // the well: a darker, lazily turning broth everyone shares
+  const lip=Math.max(8,Math.min(14,W/110));
+  const planks=Array.from({length:Math.ceil(W/120)+2},(_,i)=>{const x=i*120-((R()*30)|0);return `<path d="M${x} -10V${H+10}" stroke="#120904" stroke-opacity=".55" stroke-width="2.4"/><path d="M${x+3} -10V${H+10}" stroke="#6b4325" stroke-opacity=".18" stroke-width="1.4"/>`}).join('');
+  return `<defs>${defs}
+    <clipPath id="brothClip"><ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}"/></clipPath>
+    <filter id="bpSoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+    <filter id="bpOil" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".022 .03" numOctaves="2" seed="8"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .9  0 0 0 0 .6  0 0 0 -7 3.7"/></filter>
+    <filter id="bpGrit" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .05  0 0 0 0 0  0 0 0 -1.6 .9"/></filter>
+    <radialGradient id="tabled" cx="50%" cy="45%" r="75%"><stop offset=".4" stop-color="#3b2416"/><stop offset="1" stop-color="#140a06"/></radialGradient>
+    <radialGradient id="wellG" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#3c1e0e"/><stop offset=".55" stop-color="#6b3a1d"/><stop offset=".92" stop-color="#8d5328"/><stop offset="1" stop-color="#4a2512"/></radialGradient>
+    <linearGradient id="rimG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d524b"/><stop offset=".5" stop-color="#2f2722"/><stop offset="1" stop-color="#1b1411"/></linearGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#tabled)"/>
+  <g>${planks}</g>
+  <rect width="${W}" height="${H}" filter="url(#bpGrit)" opacity=".5"/>
+  <ellipse cx="${f1(cx+6)}" cy="${f1(cy+18)}" rx="${f1(rx+lip*2.4)}" ry="${f1(ry+lip*2.4)}" fill="#000" opacity=".55" filter="url(#bpSoft)"/>
+  <ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx+lip*3.2)}" ry="${f1(ry+lip*3.2)}" fill="#7a5a33" stroke="#2a1a0c" stroke-width="2"/>
+  <ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx+lip*2.6)}" ry="${f1(ry+lip*2.6)}" fill="none" stroke="#c9a062" stroke-opacity=".55" stroke-width="${f1(lip*.5)}"/>
+  ${Array.from({length:40},(_,i)=>{const a=i/40*6.283;return `<circle cx="${f1(cx+Math.cos(a)*(rx+lip*2.6))}" cy="${f1(cy+Math.sin(a)*(ry+lip*2.6))}" r="${f1(lip*.26)}" fill="#e3c27e" stroke="#5a3d1c" stroke-width=".8"/>`}).join('')}
+  <ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx+lip*1.7)}" ry="${f1(ry+lip*1.7)}" fill="url(#rimG)" stroke="#120c09" stroke-width="1.5"/>
+  <ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx+lip*1.25)}" ry="${f1(ry+lip*1.25)}" fill="none" stroke="#8a7a6c" stroke-opacity=".45" stroke-width="1.6"/>
+  <g clip-path="url(#brothClip)">
+    ${sectors}
+    <g>${swirls}</g>
+    <g>${oil}</g>
+    <ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}" fill="none" stroke="#1a0c05" stroke-opacity=".5" stroke-width="${f1(lip*2.4)}" filter="url(#bpSoft)"/>
+    <g class="bits">${bits}</g>
+  </g>
+  <ellipse cx="${f1(cx)}" cy="${f1(cy)}" rx="${f1(rx)}" ry="${f1(ry)}" fill="none" stroke="#120c09" stroke-width="2.5"/>
+  <path d="M${f1(cx-rx*.92)} ${f1(cy-ry*.38)}A${f1(rx+lip*.8)} ${f1(ry+lip*.8)} 0 0 1 ${f1(cx-rx*.2)} ${f1(cy-ry-lip*.75)}" fill="none" stroke="#b8a898" stroke-opacity=".35" stroke-width="${f1(lip*.5)}" stroke-linecap="round"/>
+  ${divs}
+  <ellipse cx="${f1(wx+3)}" cy="${f1(wy+7)}" rx="${f1(wrx+lip)}" ry="${f1(wry+lip)}" fill="#000" opacity=".5" filter="url(#bpSoft)"/>
+  <ellipse cx="${f1(wx)}" cy="${f1(wy)}" rx="${f1(wrx+lip*.7)}" ry="${f1(wry+lip*.7)}" fill="url(#rimG)"/>
+  <ellipse cx="${f1(wx)}" cy="${f1(wy)}" rx="${f1(wrx)}" ry="${f1(wry)}" fill="url(#wellG)"/>
+  <g clip-path="url(#wellClip)">${wellBits}</g>
+  <clipPath id="wellClip"><ellipse cx="${f1(wx)}" cy="${f1(wy)}" rx="${f1(wrx)}" ry="${f1(wry)}"/></clipPath>
+  <ellipse cx="${f1(wx)}" cy="${f1(wy)}" rx="${f1(wrx)}" ry="${f1(wry)}" fill="none" stroke="#1a0c05" stroke-opacity=".55" stroke-width="${f1(lip*1.6)}" filter="url(#bpSoft)" clip-path="url(#wellClip)"/>
+  <path d="M${f1(wx-wrx*.9)} ${f1(wy-wry*.45)}A${f1(wrx+lip*.35)} ${f1(wry+lip*.35)} 0 0 1 ${f1(wx-wrx*.1)} ${f1(wy-wry-lip*.3)}" fill="none" stroke="#c2b2a2" stroke-opacity=".4" stroke-width="${f1(lip*.35)}" stroke-linecap="round"/>`;
+}
+/* the slow whirlpool at the very centre, turned by CSS so the browser can spin it cheaply */
+function vortexSVG(){
+  const R=seeded(5);let arms='';
+  for(let i=0;i<7;i++){const a0=i/7*6.283;let d='';for(let j=0;j<=24;j++){const t=j/24,r=8+t*92,a=a0+t*2.4;d+=(j?'L':'M')+f1(100+Math.cos(a)*r)+' '+f1(100+Math.sin(a)*r)}
+    arms+=`<path d="${d}" stroke="${i%2?'#f3c27a':'#2a1206'}" stroke-opacity="${i%2?.22:.3}" stroke-width="${f1(6+R()*8)}" fill="none" stroke-linecap="round"/>`}
+  return `<svg class="vortex" viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="vxG"><stop offset="0" stop-color="#1c0b04"/><stop offset=".5" stop-color="#4a2410" stop-opacity=".7"/><stop offset="1" stop-color="#6b3a1d" stop-opacity="0"/></radialGradient></defs><circle cx="100" cy="100" r="100" fill="url(#vxG)"/>${arms}</svg>`;
+}
+
 /* =============================== SOUND =============================== */
 /* Everything is synthesised: plucked strings (Karplus-Strong), paper rustles from filtered noise,
    bubbles from tiny pitch sweeps, all through a soft room reverb. Nothing loud, nothing beepy. */
@@ -1146,7 +1297,37 @@ function music(on){
   },120);
 }
 function setSound(on){sndOn=on;store.set('sound',on);if(A.ctx){A.sfx.gain.setTargetAtTime(on?1:0,A.ctx.currentTime,.05);A.amb.gain.setTargetAtTime(on?1:0,A.ctx.currentTime,.2)}ambience(on);syncAudioBtns()}
-function setMusic(on){musOn=on;store.set('music',on);if(A.ctx)A.mus.gain.setTargetAtTime(on?.55:0,A.ctx.currentTime,.3);music(on);syncAudioBtns()}
+/* the real music: two Cantonese gaohu recordings (CC BY-SA 4.0, credited in the lobby), played in turn with a
+   slow crossfade. If the files can't load (opened without them), the little plucked tune above plays instead. */
+const TRACKS=['music/lianhuankou-gaohu.mp3','music/yu-da-bajiao-gaohu.mp3'];
+const REC={els:[],cur:-1,ok:null,vol:.32,fade:null};
+function recEl(i){
+  if(REC.els[i])return REC.els[i];
+  const a=new Audio();a.src=TRACKS[i];a.preload='auto';a.volume=0;
+  a.addEventListener('error',()=>{if(REC.ok!==true){REC.ok=false;if(musOn)music(true)}});
+  a.addEventListener('playing',()=>{REC.ok=true});
+  a.addEventListener('timeupdate',()=>{if(REC.cur===i&&a.duration&&a.duration-a.currentTime<5&&!a._x){a._x=1;recPlay((i+1)%TRACKS.length)}});
+  return REC.els[i]=a;
+}
+function ramp(a,to,ms,done){
+  clearInterval(a._r);const from=a.volume,t0=performance.now();
+  a._r=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);a.volume=Math.max(0,Math.min(1,from+(to-from)*k*k*(3-2*k)));if(k>=1){clearInterval(a._r);done&&done()}},50);
+}
+function recPlay(i){
+  const prev=REC.els[REC.cur];REC.cur=i;
+  const a=recEl(i);a._x=0;a.currentTime=0;
+  a.play().then(()=>ramp(a,REC.vol,4000)).catch(()=>{});
+  if(prev&&prev!==a)ramp(prev,0,4000,()=>prev.pause());
+}
+function recMusic(on){
+  if(REC.ok===false){music(on);return}
+  if(on){
+    const a=REC.els[REC.cur];
+    if(a&&!a.ended&&a.currentTime>0){a.play().catch(()=>{});ramp(a,REC.vol,1500)}
+    else recPlay(REC.cur<0?(Math.random()*TRACKS.length)|0:REC.cur);
+  }else REC.els.forEach(a=>ramp(a,0,800,()=>a.pause()));
+}
+function setMusic(on){musOn=on;store.set('music',on);if(A.ctx)A.mus.gain.setTargetAtTime(on?.55:0,A.ctx.currentTime,.3);recMusic(on);if(!on)music(false);syncAudioBtns()}
 function syncAudioBtns(){
   const m=$('#btnMute'),u=$('#btnMusic');
   if(m){m.setAttribute('aria-pressed',sndOn);$('#tipMute').textContent=sndOn?'Sounds on':'Sounds off'}
@@ -1156,11 +1337,11 @@ function syncAudioBtns(){
 function wakeAudio(){
   const c=audio();if(!c)return;
   if(c.state==='suspended')c.resume();
-  if(!M.iv&&musOn)music(true);
+  if(musOn&&REC.cur<0&&REC.ok!==false)recMusic(true);
   if(ambIv==null&&sndOn)ambience(true);
 }
 ['pointerdown','keydown'].forEach(ev=>addEventListener(ev,wakeAudio,{passive:true}));
-document.addEventListener('visibilitychange',()=>{if(!A.ctx)return;if(document.hidden)A.ctx.suspend();else A.ctx.resume()});
+document.addEventListener('visibilitychange',()=>{const a=REC.els[REC.cur];if(a&&musOn){if(document.hidden)a.pause();else a.play().catch(()=>{})}if(!A.ctx)return;if(document.hidden)A.ctx.suspend();else A.ctx.resume()});
 /* =============================== RULES =============================== */
 /* Best way to split cards into sets. Triple = 120, Category set = 60. */
 function bestSets(cards){
@@ -1261,14 +1442,32 @@ function fitTable(){
   const a=Math.min(1.9,Math.max(fw<560?.74:1.12,fw/fh));
   let tw=Math.min(fw-6,(fh-14)*a,1250),th=tw/a;
   tw=Math.round(tw);th=Math.round(th);
-  if(f._tw===tw&&f._th===th)return;f._tw=tw;f._th=th;
-  f.style.setProperty('--tw',tw+'px');f.style.setProperty('--th',th+'px');
-  f.parentElement.style.setProperty('--pull',Math.max(0,(fw-tw)/2-18)+'px');
-  const s=$('#tbl');s.setAttribute('viewBox',`0 0 ${tw} ${th}`);s.innerHTML=tableSVG(tw,th);
+  if(f._tw!==tw||f._th!==th){f._tw=tw;f._th=th;
+    f.style.setProperty('--tw',tw+'px');f.style.setProperty('--th',th+'px');
+    f.parentElement.style.setProperty('--pull',Math.max(0,(fw-tw)/2-18)+'px');}
+  fitPot();
+}
+/* lay the great pot under everything: the well is the middle of the table, the rim takes in every hand */
+function fitPot(){
+  const gm=$('#game'),f=$('#felt'),s=$('#bigpot');if(!gm||gm.hidden||!f._tw)return;
+  const gr=gm.getBoundingClientRect(),W=Math.round(gr.width),H=Math.round(gr.height);
+  const rel=el=>{const r=(typeof el==='string'?$(el):el).getBoundingClientRect();return {l:r.left-gr.left,t:r.top-gr.top,r:r.right-gr.left,b:r.bottom-gr.top,cx:(r.left+r.right)/2-gr.left,cy:(r.top+r.bottom)/2-gr.top}};
+  const fr=rel(f),wx=fr.cx,wy=fr.cy,wrx=f._tw*.43,wry=f._th*.44;
+  const q=sel=>rel($(sel)||$(sel.split(' ')[0])),o2=q('#opp2'),o1=q('#opp1 .fan'),o3=q('#opp3 .fan'),hd=q('#hand');
+  const phone=W<640;
+  const T=Math.min(o2.t+(phone?2:-4),wy-wry-40),Hy=phone?hd.t+(hd.b-hd.t)*.35:(hd.t+hd.b)/2;
+  const ry=Math.max((Hy-T)/1.5,wry+60),cy=T+ry,cx=W/2;
+  const rx=Math.min(W/2-(phone?-30:6),Math.max(ry*1.9,wrx+120));
+  const key=[W,H,f._tw,f._th,Math.round(T),Math.round(Hy)].join();
+  if(s._k===key)return;s._k=key;
+  const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];
+  const dirs=[mid([o2.l,o2.cy],[o3.cx,o3.t]),mid([o2.r,o2.cy],[o1.cx,o1.t]),mid([o1.cx,o1.b],[hd.r,hd.t]),mid([o3.cx,o3.b],[hd.l,hd.t])];
+  s.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  s.innerHTML=bigPotSVG(W,H,{cx,cy,rx,ry,wx,wy,wrx,wry,dirs});
 }
 function buildPot(){
   const p=$('#pot');if(p.childElementCount)return;
-  p.innerHTML=steamSVG()+potSVG('gp');
+  p.innerHTML=vortexSVG()+steamSVG();
 }
 let potTaps=0,potT=0;
 function heartSteam(){
@@ -1320,7 +1519,7 @@ function showLobby(){
     ${spiceHTML(diff,k=>`data-diff="${k}"`)}
     <div class="go"><button class="btn primary big" data-act="startnow" id="btnStart">Start now</button>
       <div class="waiting">${ringHTML()}<span>or on its own in <b id="csec">${LOBBY_S}</b>s</span></div></div>
-    <div class="links">${ONLINE_OK?`<button class="link" data-act="online">Play online with friends</button>`:''}${st.games?`<button class="link" data-act="help">How to play</button>`:''}</div>
+    <div class="links">${ONLINE_OK?`<button class="link" data-act="online">Play online with friends</button>`:''}${st.games?`<button class="link" data-act="help">How to play</button>`:''}<button class="link" data-act="credits">The music</button></div>
     <p class="ledger">${ledger(st)}</p>
   </div>`;
   L={t0:performance.now()};
@@ -1571,6 +1770,7 @@ function render(){
   $('#pot').classList.toggle('take',canDraw);
   $('#deckSlot').innerHTML=`<${canDraw?'button type="button" data-act="takedeck"':'div'} class="deck ${canDraw?'take':''}" aria-label="${canDraw?'Draw from the pot, ':''}${G.draw.length} cards left"><i class="cb"></i><i class="cb"></i><i class="cb"></i><span class="lbl">draw one</span><span class="cnt">${G.draw.length} left</span></${canDraw?'button':'div'}>`;
   renderMe();
+  fitPot();
   if(dealIn){dealIn=false;dealAnim()}
   motionPlay(snap);
   G.fresh.clear();
@@ -1594,7 +1794,7 @@ function renderMe(){
     const k=helper?tmap.get(c.id):null,ps=solo?'fl':(pos.get(c.id)||'');
     const cls=[k?(k==='triple'?'ts':'tc'):'',k&&ps.includes('f')?'tf':'',k&&ps.includes('l')?'tl':'',helper&&!k&&near.has(c.id)?'near':'',G.sel===c.id?'sel':'',G.fresh.has(c.id)?'pop':'',starts.has(c.id)?'gs':''].join(' ');
     const o=n>1?(i-(n-1)/2)/((n-1)/2):0;
-    return cardHTML(c,{tag:'button',cls,style:solo?'':`--ar:${(o*2.6).toFixed(2)}deg;--ay:${(o*o*7).toFixed(1)}px;--wob:${((R()-.5)*3).toFixed(1)}deg`,aria:(k?(k==='triple'?'part of a three of a kind':'part of a colour set'):'')+(canDiscard?', tap twice to discard':'')});
+    return cardHTML(c,{tag:'button',cls,style:solo?'':`--ar:${(-o*3.2).toFixed(2)}deg;--ay:${(-o*o*12).toFixed(1)}px;--wob:${((R()-.5)*3).toFixed(1)}deg`,aria:(k?(k==='triple'?'part of a three of a kind':'part of a colour set'):'')+(canDiscard?', tap twice to discard':'')});
   };
   const setN=bs.sets.length;
   $('#me').innerHTML=`<div class="mehand"><div class="hand" id="hand" role="group" aria-label="Your hand">${list.map((c,i)=>mk(c,i)).join('')}</div>
@@ -1655,6 +1855,17 @@ function helpModal(tab='rules'){
   openModal(`<div class="sheet-head"><h2>How to play</h2>${xBtn}</div>
   <div class="pentabs" role="tablist"><button role="tab" data-act="helptab" data-tab="rules" aria-selected="${tab==='rules'}">the rules</button><button role="tab" data-act="helptab" data-tab="cards" aria-selected="${tab==='cards'}">all 24 foods</button></div>
   ${tab==='rules'?rules:cards}`,'help');
+}
+function creditsModal(){
+  const by='<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>';
+  openModal(`<h2>The music</h2><p class="lede">Two pieces of Cantonese music (廣東音樂) played on the gaohu, the high Cantonese fiddle.</p>
+  <ul class="credits">
+   <li><b>Lian Huan Kou (連環扣), “Linked Rings”</b> by Yan Laolie, performed by Zhang Peijian, recorded by David290, via <a href="https://commons.wikimedia.org/wiki/File:%E8%BF%9E%E7%8E%AF%E6%89%A3.ogg" target="_blank" rel="noopener">Wikimedia Commons</a>, ${by}</li>
+   <li><b>Yu Da Ba Jiao (雨打芭蕉), “Rain on Banana Leaves”</b>, traditional, arr. Qiu Hechou, performed by Zhang Peijian, recorded by David290, via <a href="https://commons.wikimedia.org/wiki/File:%E9%9B%A8%E6%89%93%E8%8A%AD%E8%95%89.ogg" target="_blank" rel="noopener">Wikimedia Commons</a>, ${by}</li>
+  </ul>
+  <p class="lede">Everything else here, the pictures, the sounds, the little faces, was made by hand for this table.</p>
+  <div class="foot"><button class="btn primary" data-act="close" data-close>Back to the table</button></div>`,'credits');
+  $('#modal .sheet').style.width='min(560px,100%)';
 }
 function quitModal(){
   openModal(`<h2>Leave the table?</h2><p>${G&&G.online?'A computer player will keep your seat warm until you come back.':"This game ends here, and there's nothing to win from it."}</p>
@@ -1736,6 +1947,7 @@ document.addEventListener('click',e=>{
     case'handview':if(G&&!modal)handModal();break;
     case'help':if(!modal)helpModal();break;
     case'helptab':closeModal();helpModal(b.dataset.tab);break;
+    case'credits':if(!modal)creditsModal();break;
     case'quit':if(G&&!modal&&!G.over)quitModal();break;
     case'helper':helper=!helper;store.set('helper',helper);G&&renderMe();break;
     case'mute':setSound(!sndOn);break;
