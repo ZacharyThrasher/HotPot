@@ -952,6 +952,9 @@ button.card{cursor:pointer}
 .hand .card.tilting::after{transition:none}
 @media (hover:hover){.hand .card:not(.sel):hover{filter:drop-shadow(0 1.6px 0 #d9c49e) drop-shadow(0 1px 0 rgba(60,30,10,.45)) drop-shadow(0 14px 12px rgba(10,5,10,.32))}}
 @media (prefers-reduced-motion:reduce){.hand .card{rotate:none}}
+
+/* scene changes crossfade */
+::view-transition-old(root),::view-transition-new(root){animation-duration:.45s;animation-timing-function:ease-in-out}
 </style>
 
 <body>
@@ -2204,7 +2207,7 @@ function showLobby(){
     if(!L||!$('#cring'))return;
     const now=performance.now();if(modal){L.t0+=now-(L.lt||now)}L.lt=now;if(modal)return; // the clock waits while a page is open
     const rem=Math.max(0,LOBBY_S-(performance.now()-L.t0)/1000);setRing(rem);
-    if(rem<=0){clearInterval(L.iv);startGame()}
+    if(rem<=0){clearInterval(L.iv);scene(startGame)}
   },200);
 }
 
@@ -2239,7 +2242,7 @@ function startTurn(){
   const p=G.players[G.turn];
   if(G.turn===0&&!HP.autoHuman){G.deadline=performance.now()+TURN_MS;G.last=performance.now();sfx.turn()}
   render();
-  if(!p.human||HP.autoHuman)later(()=>aiDraw(G.turn),delay(1000,1700));
+  if(!p.human||HP.autoHuman)later(()=>aiDraw(G.turn),p.human?delay(1000,1700):botThink(G.turn));
 }
 function logMsg(s){G.log.unshift(s);G.log.length=Math.min(G.log.length,3)}
 function take(seat,src){
@@ -2252,7 +2255,7 @@ function take(seat,src){
   const who=p.human?'You':p.name;
   logMsg(src==='pile'?`${who} drew from the pot`:`${who} took ${from==='you'?'your':from+"'s"} ${nameOf(card.t)}`);
   if(canWin(p.hand)){declareWin(seat);return true}
-  render();return false;
+  render();botReact(seat,src);return false;
 }
 function discard(seat,cardId){
   if(!G||G.over||G.turn!==seat||G.phase!=='discard')return; // e.g. the timeout's auto-toss after you already tossed
@@ -2272,12 +2275,13 @@ function aiDraw(seat){
   if(Math.random()<G.diff.rand)src='pile';
   if(HP.autoHuman&&seat===0)src=aiChooseSource(G,0,DIFFS.sharp);
   if(take(seat,src))return;
+  const ms=delay(900,1500);if(!p.human)botMull(seat,ms);
   later(()=>{
     const d=(seat===0&&HP.autoHuman)?DIFFS.sharp:G.diff;
     let pick=pickDiscard(G,p,p.hand,d.noise).card;
     if(Math.random()<d.rand)pick=p.hand[(Math.random()*p.hand.length)|0];
     discard(seat,pick.id);
-  },delay(900,1500));
+  },ms);
 }
 function timeUp(){
   if(G.turn!==0||G.over)return;
@@ -2698,9 +2702,9 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act;
   switch(a){
-    case'startnow':startGame();break;
-    case'again':if(G&&G.online){net.isHost()?net.send({t:'again'}):toast('Waiting for host')}else startGame();break;
-    case'lobby':case'leave':net.leave();showLobby();break;
+    case'startnow':scene(startGame);break;
+    case'again':if(G&&G.online){net.isHost()?net.send({t:'again'}):toast('Waiting for host')}else scene(startGame);break;
+    case'lobby':case'leave':net.leave();scene(showLobby);break;
     case'online':net.create();break;
     case'copylink':net.copyLink();break;
     case'olstart':net.send({t:'start'});break;
@@ -2802,6 +2806,59 @@ document.addEventListener('pointermove',e=>{
   c.classList.add('tilting');c.style.setProperty('--tilt',`${(-dy*.5).toFixed(2)} ${dx.toFixed(2)} 0 ${(Math.min(1,Math.hypot(dx,dy))*9).toFixed(1)}deg`);
   c.style.setProperty('--shx',(100-(dx+1)*50).toFixed(0)+'%');tiltEl=c;
 },{passive:true});
+
+/* =============================== SCENES AND TABLE MANNERS =============================== */
+/* moving between the lobby, the table and the bill crossfades instead of cutting */
+function scene(fn){
+  if(HP.fast||RM.matches){fn();return}
+  if(document.startViewTransition){document.startViewTransition(fn);return}
+  fn();
+  const el=!$('#game').hidden?$('#game'):$('#lobby');
+  el.animate([{opacity:0,filter:'blur(3px)'},{opacity:1,filter:'none'}],{duration:420,easing:'ease-out'});
+}
+
+/* the bots: they look at what they're weighing, take a varied while over it, fidget with their fan and react */
+const quiet=()=>HP.fast||RM.matches||!G||G.online;
+function glance(seat,target,ms){
+  const s=$('#av'+seat);if(!s||!target||quiet())return;
+  const a=s.getBoundingClientRect(),b=target.getBoundingClientRect();
+  let ux=(b.left+b.width/2)-(a.left+a.width/2),uy=(b.top+b.height/2)-(a.top+a.height/2);const d=Math.hypot(ux,uy)||1;ux/=d;uy/=d;
+  const lean=`translate(${(ux*4).toFixed(1)}px,${(uy*3).toFixed(1)}px) rotate(${(ux*7).toFixed(1)}deg)`;
+  s.animate([{transform:'none'},{transform:lean,offset:.22},{transform:lean,offset:.78},{transform:'none'}],{duration:ms,easing:'ease-in-out'});
+  const eyes=s.querySelectorAll('.ex-think,.ex-idle');
+  eyes.forEach(e=>e.animate([{transform:'none'},{transform:`translate(${(ux*1.6).toFixed(2)}px,${(uy*1.2).toFixed(2)}px)`,offset:.2},{transform:`translate(${(ux*1.6).toFixed(2)}px,${(uy*1.2).toFixed(2)}px)`,offset:.8},{transform:'none'}],{duration:ms,easing:'ease-in-out'}));
+}
+const pileEl=s=>s==='pile'?$('#felt .deck'):$('#pile'+s);
+/* how long a bot sits on its draw, and where it looks meanwhile; returns the wait in ms */
+function botThink(seat){
+  if(HP.fast)return 0;
+  let src='pile';try{src=aiChooseSource(G,seat,G.diff)}catch(e){}
+  const others=[0,1,2,3].filter(s=>s!==seat&&G.players[s].discards.length);
+  const torn=src!=='pile'||Math.random()<.3;
+  const ms=rnd(850,1450)+(torn?rnd(350,800):0)+(Math.random()<.12?rnd(400,900):0);
+  if(!quiet()){
+    const first=src!=='pile'?pileEl('pile'):pileEl(others.length?others[(Math.random()*others.length)|0]:'pile');
+    setTimeout(()=>glance(seat,first,torn?ms*.42:ms*.6),ms*.12);
+    if(torn)setTimeout(()=>glance(seat,pileEl(src),ms*.38),ms*.58);
+  }
+  return ms;
+}
+/* while choosing a card to toss, a card or two rises from the fan and settles back */
+function botMull(seat,ms){
+  if(quiet())return;
+  const cs=[...document.querySelectorAll(`#opp${seat} .fan .cb`)];if(!cs.length)return;
+  const n=ms>1200?2:1;
+  for(let i=0;i<n;i++){const c=cs[(Math.random()*cs.length)|0];
+    setTimeout(()=>c.isConnected&&c.animate([{translate:'0 0'},{translate:'0 -7px',offset:.35},{translate:'0 -6px',offset:.7},{translate:'0 0'}],{duration:ms*.45,easing:'ease-in-out'}),ms*(.1+i*.42))}
+}
+/* faces: pleased when they take a discard they wanted, glum when someone takes theirs */
+function botReact(seat,src){
+  if(!G||G.online||src==='pile')return;
+  const set=(s,m,ms)=>{if(!G.players[s]||G.players[s].human)return;const el=$('#av'+s);if(!el)return;
+    el.classList.remove('think','happy','sad');el.classList.add(m);setTimeout(()=>{if(el.isConnected){el.classList.remove(m);if(G&&G.turn===s&&!G.over)el.classList.add('think')}},ms)};
+  set(seat,'happy',900);
+  set(src,'sad',1100);
+}
 
 /* =============================== ONLINE (invite-link tables) =============================== */
 const SEAT_COLORS=['#4a7fb5','#a8506a','#3d7660','#66549e','#b5832f','#3f8f8a'];
