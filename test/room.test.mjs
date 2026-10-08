@@ -139,3 +139,20 @@ test('host can start a rematch after the game ends', () => {
   b.send({ t: 'again' }); assert.equal(b.last().t, 'error');
   a.send({ t: 'again' }); assert.equal(a.last().over, false); assert.equal(a.last().players[0].hand.length, 8);
 });
+
+test('portraits: chosen looks reach every seat, bad ones are dropped', () => {
+  const env = mkEnv(), room = new RoomLogic(null, env);
+  const a = client(room, env, 'Ana'), b = client(room, env, 'Bo');
+  a.send({ t: 'join', name: 'Ana', token: a.token, look: '2.3.bun.clip' });
+  b.send({ t: 'join', name: 'Bo', token: b.token, look: '<svg onload=x>' });
+  let seats = b.last().seats;
+  assert.equal(seats[0].look, '2.3.bun.clip');
+  assert.equal(seats[1].look, '');
+  b.send({ t: 'join', name: 'Bo', token: b.token, look: '0.0.puff.hoops' });
+  run(room, env, () => room.s.phase === 'playing');
+  const v = b.inbox.filter((m) => m.t === 'state').at(-1);
+  assert.equal(v.players[0].look, '0.0.puff.hoops');
+  assert.equal(v.players[3].look, '2.3.bun.clip');
+  a.send({ t: 'join', name: 'Ana', token: a.token, look: '1.1.short.none' });
+  assert.equal(b.inbox.filter((m) => m.t === 'state').at(-1).players[3].look, '1.1.short.none');
+});

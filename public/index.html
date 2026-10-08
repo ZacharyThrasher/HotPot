@@ -839,6 +839,33 @@ button.card{cursor:pointer}
   .pile .cnt{right:calc(var(--pw)*-.62);bottom:calc(var(--pw)*-.3)}
 }
 .chili small{white-space:nowrap}
+.bripple{position:fixed;width:12px;height:12px;border-radius:50%;pointer-events:none;z-index:3;border:2px solid rgba(255,248,230,.55);transform:translate(-50%,-50%) scaleY(.5);animation:bripple 1.2s cubic-bezier(.2,.6,.3,1) forwards}
+.bripple::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:1.5px solid rgba(255,248,230,.35);animation:bripple2 1.2s .18s cubic-bezier(.2,.6,.3,1) both}
+@keyframes bripple{to{width:120px;height:120px;opacity:0;border-width:1px}}
+@keyframes bripple2{from{transform:scale(.3);opacity:1}to{transform:scale(.7);opacity:0}}
+.pot>svg.steam{transition:transform 1.4s cubic-bezier(.2,.7,.3,1);transform:translateX(-50%) skewX(var(--lean,0deg))}
+.opp .seal{cursor:pointer}
+/* lobby stats as a row of little tallies */
+.ledger{display:flex;justify-content:center;gap:clamp(14px,4vw,28px);text-wrap:initial}
+.ledger:empty{display:none}
+.ledger span{display:grid;justify-items:center;font:400 14px/1.1 var(--f-hand);color:var(--ink3)}
+.ledger span b{font:700 22px/1 var(--f-hand);color:var(--ink)}
+/* your portrait, tap to change */
+.lookbtn{appearance:none;border:0;background:none;padding:0;cursor:pointer;font:inherit;color:inherit}
+.lookbtn .place.me .seal,.place.me[data-act=look] .seal{transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
+.lookbtn:hover .seal,.place.me[data-act=look]:hover .seal{transform:rotate(-4deg) scale(1.06)}
+.lookbtn .place.me::after,.place.me[data-act=look]::after{content:"";position:absolute;right:2px;top:34px;width:18px;height:18px;border-radius:50%;background:#fbf3e2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 15.6l1-3.8 8-8c.8-.8 2-.8 2.8 0s.8 2 0 2.8l-8 8z' fill='none' stroke='%237a5a42' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat;box-shadow:0 1px 3px rgba(60,30,10,.35);transform:rotate(-8deg)}
+.lprev{display:grid;place-items:center;margin:-4px 0 6px}.lprev .seal.lg{width:104px;height:104px}
+.lrow{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:10px;padding:7px 0;border-top:1.5px dashed rgba(122,90,66,.22)}
+.ll{font:700 17px var(--f-hand);color:var(--ink2)}
+.lopts{display:flex;flex-wrap:wrap;gap:6px}
+.lopt{appearance:none;border:0;background:none;padding:3px;cursor:pointer;position:relative;border-radius:50%;transition:transform .2s cubic-bezier(.3,1.5,.5,1)}
+.lopt:hover{transform:translateY(-2px) rotate(-3deg)}
+.lopt .lf{display:block;width:44px;height:44px}.lopt .lf svg{width:100%;height:100%}
+.lopt .dab{display:block;width:30px;height:28px;background:var(--dc);-webkit-mask:var(--blob) 0 0/100% 100%;mask:var(--blob) 0 0/100% 100%;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.lopt.on::after{content:"";position:absolute;left:12%;right:12%;bottom:-5px;height:5px;background:var(--lacq);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 6' preserveAspectRatio='none'%3E%3Cpath d='M1 3.6c6-2 12 1 19-.6s12-1.6 19 .4' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 6' preserveAspectRatio='none'%3E%3Cpath d='M1 3.6c6-2 12 1 19-.6s12-1.6 19 .4' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+.lopt.on{transform:translateY(-2px)}
+@media (max-width:640px){.lrow{grid-template-columns:1fr;gap:4px}.lopt .lf{width:38px;height:38px}}
 .turnglow{position:fixed;width:90px;height:90px;border-radius:50%;pointer-events:none;z-index:27;background:radial-gradient(closest-side,rgba(255,214,140,.55),rgba(255,190,100,.18) 60%,transparent);mix-blend-mode:screen}
 .slip .fuse.last i::after{animation:fuseflick .32s steps(3) infinite}
 @keyframes fuseflick{0%{opacity:1;transform:scale(1)}33%{opacity:.55;transform:scale(.85)}66%{opacity:.9;transform:scale(1.15)}}
@@ -1279,8 +1306,15 @@ const FACES={
   Zeki:{skin:'#c98d63',hair:'#211815',style:'curls',top:'#3d7660',extra:'glasses'},
   Eshe:{skin:'#7e4d30',hair:'#1c1210',style:'puff',top:'#66549e',extra:'hoops'},
 };
+/* a chosen look travels as "skin.hair.style.extra" (e.g. "2.3.bun.clip"): your own lives on this device,
+   other online players' arrive from the table */
+const STYLES=['bob','short','long','bun','curls','puff'],EXTRAS=['none','clip','glasses','freckles','hoops','sticks'];
+const LOOKS={};
+function parseLook(s){const m=/^([0-5])\.([0-6])\.(bob|short|long|bun|curls|puff)\.(none|clip|glasses|freckles|hoops|sticks)$/.exec(s||'');return m?{skin:SKIN[+m[1]],hair:HAIR[+m[2]],style:m[3],extra:m[4]==='none'?'':m[4]}:null}
+const myLook=()=>store.get('look','');
 function faceOf(name,color,seed,me){
-  if(me)return {...FACES.You,top:color};
+  if(me)return {...FACES.You,...(parseLook(myLook())||{}),top:color};
+  const l=parseLook(LOOKS[name]);if(l)return {...l,top:color};
   if(FACES[name])return FACES[name];
   const R=seeded(seed^0x5f3);
   return {skin:SKIN[(R()*SKIN.length)|0],hair:HAIR[(R()*HAIR.length)|0],style:['bob','short','long','bun','curls','puff'][(R()*6)|0],top:color,extra:['','','freckles','clip','glasses'][(R()*5)|0]};
@@ -1765,6 +1799,7 @@ function fitPot(){
   s.setAttribute('viewBox',`0 0 ${W} ${H}`);
   const pad=(b,m)=>({l:b.l-m,r:b.r+m,t:b.t-m,b:b.b+m}),avoid=[pad(q('#me'),18),...['#opp1','#opp2','#opp3'].map(x=>pad(q(x),24))];
   s.innerHTML=bigPotSVG(W,H,{cx,cy,rx,ry,wx,wy,wrx,wry,dirs,avoid});
+  const la=-.72;s._g={cx,cy,rx,ry,wx,wy,wrx,wry,lx:wx+Math.cos(la)*wrx*.74,ly:wy+Math.sin(la)*wry*.74};
 }
 function buildPot(){
   const p=$('#pot');if(p.childElementCount)return;
@@ -1784,10 +1819,35 @@ function ripple(e){
   const i=document.createElement('i');i.className='ripple';i.style.left=x+'px';i.style.top=y+'px';p.appendChild(i);setTimeout(()=>i.remove(),950);
 }
 
+/* the table answers a touch: broth ripples, garnish bobs away, the ladle knocks, steam leans */
+function touchTable(e){
+  const s=$('#bigpot'),g=s&&s._g,gr=$('#game').getBoundingClientRect();if(!g)return false;
+  const x=e.clientX-gr.left,y=e.clientY-gr.top;
+  if(((x-g.cx)/g.rx)**2+((y-g.cy)/g.ry)**2>1)return false;
+  const still=RM.matches;
+  if(Math.hypot((x-g.lx)/1.2,y-g.ly)<34){
+    pluck(note(14)*rnd(.98,1.02),{v:.05,bright:.95,dur:.9});pluck(note(16),{t:.05,v:.03,bright:.95,dur:.7});
+    const l=s.querySelector('.ladle');if(l&&!still){l.style.transformOrigin=`${g.lx}px ${g.ly}px`;l.animate([{transform:'none'},{transform:'rotate(7deg)',offset:.25},{transform:'rotate(-4deg)',offset:.6},{transform:'none'}],{duration:900,easing:'ease-out'})}
+    return true;
+  }
+  bloop({v:.045});if(Math.random()<.5)bloop({t:.07,v:.03});
+  if(still)return true;
+  const r=document.createElement('i');r.className='bripple';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';$('#layer').appendChild(r);setTimeout(()=>r.remove(),1300);
+  s.querySelectorAll('.bit').forEach(b=>{const q=b.getBoundingClientRect(),dx=q.left+q.width/2-e.clientX,dy=q.top+q.height/2-e.clientY,d=Math.hypot(dx,dy);
+    if(d>110||d<1)return;const k=(110-d)/110*14;
+    b.animate([{transform:'translate(0,0)'},{transform:`translate(${(dx/d*k).toFixed(1)}px,${(dy/d*k*.7).toFixed(1)}px) rotate(${(rnd(-12,12)).toFixed(0)}deg)`,offset:.3},{transform:'translate(0,0)'}],{duration:1400+d*4,easing:'cubic-bezier(.2,.7,.3,1)',composite:'add'})});
+  return true;
+}
+/* steam leans away from a hovering hand */
+document.addEventListener('pointermove',e=>{
+  const p=e.target.closest&&e.target.closest('#pot');const st=document.querySelector('#pot>svg.steam');if(!st)return;
+  if(!p||RM.matches){st.style.removeProperty('--lean');return}
+  const r=p.getBoundingClientRect(),k=(e.clientX-(r.left+r.width/2))/(r.width/2);st.style.setProperty('--lean',(-k*14).toFixed(1)+'deg');
+},{passive:true});
 /* =============================== LOBBY =============================== */
 /* The menu hangs on two bits of twine from the lantern rope. */
 const tapes=(a)=>a==='t'?`<i class="tack" aria-hidden="true"></i>`:`<i class="hang l" aria-hidden="true"></i><i class="hang r" aria-hidden="true"></i>`;
-const heroHTML=(sub)=>`<div class="hero"><div class="potart">${steamSVG()}${potSVG('lp')}</div><h1 id="lobbyTitle">Hotpot</h1><div class="tag">${sub}</div></div>`;
+const heroHTML=(sub)=>`<div class="hero"><div class="potart">${steamSVG()}${potSVG('lp')}</div><h1 id="lobbyTitle">Hotpot</h1>${sub?`<div class="tag">${sub}</div>`:""}</div>`;
 /* the countdown is a stick of incense burning down */
 function ringHTML(){return `<div class="incense" id="cring" aria-hidden="true"><svg viewBox="0 0 40 96"><path class="smoke" d="M20 22c-6-5 6-9 0-14s5-8 1-12"/><path class="smoke s2" d="M20 22c5-4-5-8 1-13s-4-8 0-11"/><rect class="stick" x="18.6" y="22" width="2.8" height="58" rx="1.2"/><circle class="ember" cx="20" cy="22" r="2.4"/><path d="M6 82c0-4 6-6 14-6s14 2 14 6c0 5-6 8-14 8S6 87 6 82z" fill="#7d5a3f"/><path d="M8 81c2-3 7-4 12-4s10 1 12 4" fill="none" stroke="#b08a62" stroke-width="1.4" stroke-linecap="round"/><path d="M11 88c3 2 15 2 18 0" fill="none" stroke="#5a3d28" stroke-width="1.2" stroke-linecap="round"/></svg></div>`}
 function setRing(rem){
@@ -1805,22 +1865,23 @@ function spiceHTML(cur,attr){
 const guestHTML=(name,color,seed,me,note='')=>`<div class="place${me?' me':''}">${sealHTML(name,color,seed,'sm','',me)}<span class="gname">${esc(name)}</span>${note?`<small>${note}</small>`:''}</div>`;
 const emptySeatHTML=(note)=>`<div class="place empty"><div class="stool" aria-hidden="true"><svg viewBox="0 0 54 54"><ellipse cx="27" cy="21" rx="16" ry="5.5" fill="#c79a6a" stroke="#8a6040" stroke-width="1.4"/><path d="M14 23l-3 19M40 23l3 19M22 26l-1 18M32 26l1 18M13 35h28" fill="none" stroke="#8a6040" stroke-width="2" stroke-linecap="round"/></svg></div><span class="gname">open seat</span><small>${note}</small></div>`;
 function ledger(st){
-  if(!st.games)return 'First time at the table? <button class="link" data-act="help">Here’s how to play.</button>';
-  return `You’ve sat down ${st.games===1?'once':st.games+' times'} and won ${st.wins===0?'nothing yet':st.wins===1?'once':st.wins+' times'}. ${st.coins} prize coin${st.coins===1?'':'s'} in your pocket${st.best?`, best hand ${st.best}`:''}.`;
+  if(!st.games)return '';
+  const it=(n,l)=>`<span><b>${n}</b>${l}</span>`;
+  return it(st.games,'played')+it(st.wins,'won')+it(st.coins,'coins')+(st.best?it(st.best,'best'):'');
 }
 function showLobby(){
   stopLoops(); G=null; modal=null; $('#layer').innerHTML='';
   $('#game').hidden=true; const el=$('#lobby'); el.hidden=false;
   const st=stats();
   el.innerHTML=`<div class="menu paper lift">${tapes()}
-    ${heroHTML('Pull up a stool. The broth is almost ready.')}
+    ${heroHTML('')}
     ${FOR_WHOM?`<div class="dedic">for ${esc(FOR_WHOM)}</div>`:''}
-    <div class="guests" aria-label="Who's at the table">${guestHTML('You',ME_COLOR,11,true)}${NPCS.map((n,i)=>guestHTML(n.name,n.color,seedOf(n.name)+i+1,false)).join('')}</div>
-    <p class="q">How spicy should they play?</p>
+    <div class="guests" aria-label="Who's at the table"><button class="lookbtn" data-act="look" aria-label="Change your portrait">${guestHTML('You',ME_COLOR,11,true)}</button>${NPCS.map((n,i)=>guestHTML(n.name,n.color,seedOf(n.name)+i+1,false)).join('')}</div>
+    <p class="q">Spice</p>
     ${spiceHTML(diff,k=>`data-diff="${k}"`)}
     <div class="go"><button class="btn primary big" data-act="startnow" id="btnStart">Start now</button>
-      <div class="waiting">${ringHTML()}<span>or on its own in <b id="csec">${LOBBY_S}</b>s</span></div></div>
-    <div class="links">${ONLINE_OK?`<button class="link" data-act="online">Play online with friends</button>`:''}${st.games?`<button class="link" data-act="help">How to play</button>`:''}<button class="link" data-act="credits">♪ about the music</button></div>
+      <div class="waiting">${ringHTML()}<span><b id="csec">${LOBBY_S}</b>s</span></div></div>
+    <div class="links">${ONLINE_OK?`<button class="link" data-act="online">Play online</button>`:''}<button class="link" data-act="help">Rules</button><button class="link" data-act="credits">♪ Music</button></div>
     <p class="ledger">${ledger(st)}</p>
   </div>`;
   L={t0:performance.now()};
@@ -1906,7 +1967,7 @@ function aiDraw(seat){
 }
 function timeUp(){
   if(G.turn!==0||G.over)return;
-  toast('Time ran out, so that turn was played for you');
+  toast('Time’s up');
   if(G.phase==='draw'){ if(take(0,'pile'))return; }
   later(()=>{const c=pickDiscard(G,G.players[0],G.players[0].hand,.3).card;discard(0,c.id)},delay(600,800));
   G.deadline=Infinity;
@@ -1930,7 +1991,7 @@ function moment(kind,name){
   const mine=kind==='me',dry=kind==='dry';
   const seat=G?G.players.findIndex(q=>q.name===name):-1,wp=seat>=0?G.players[seat]:null;
   const who=dry?`<div class="crowd">${G.players.map((q,i)=>sealHTML(q.name,q.color,seedOf(q.name)+i,'sad','',i===0&&q.color===ME_COLOR)).join('')}</div>`:wp?sealHTML(wp.name,wp.color,seedOf(wp.name)+seat,'happy','',seat===0&&wp.color===ME_COLOR):'';
-  L2.insertAdjacentHTML('beforeend',`<div class="moment ${mine?'':'quiet'} ${dry?'dry':''}" id="winb"><div class="big"><div class="bubble"><span>${dry?'The pot’s empty!':'Hotpot!'}</span></div><div class="speaker">${who}</div><div class="sub">${dry?'Nobody made three sets this time':mine?'Three sets, and the ninth card was yours':esc(name)+' finished three sets first'}</div></div></div>`);
+  L2.insertAdjacentHTML('beforeend',`<div class="moment ${mine?'':'quiet'} ${dry?'dry':''}" id="winb"><div class="big"><div class="bubble"><span>${dry?'The pot’s empty!':'Hotpot!'}</span></div><div class="speaker">${who}</div><div class="sub">${dry?'No winner':mine?'Three sets':esc(name)}</div></div></div>`);
   setTimeout(()=>sfx.stamp(),120);
   if(mine&&!RM.matches){
     const few=innerWidth<640;
@@ -2079,7 +2140,7 @@ function oppHTML(seat){
 const bowl=on=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 11.2h17.2c-.3 4.9-3.8 8.1-8.6 8.1s-8.3-3.2-8.6-8.1z" fill="${on?'#86c06e':'rgba(255,240,215,.08)'}" stroke="#f1dcb8" stroke-width="1.5" stroke-linejoin="round"/>${on?'<path d="M9 8.6c-.9-1.2.9-1.8 0-3.2M12.6 8.6c-.9-1.2.9-1.8 0-3.2M16 8.6c-.9-1.2.9-1.8 0-3.2" fill="none" stroke="#f1dcb8" stroke-width="1.3" stroke-linecap="round"/>':''}</svg>`;
 function slipText(){
   if(G.over)return G.winner==null?'Round over':G.winner===0?'<em>Hotpot!</em> You did it':`${esc(G.players[G.winner].name)} called hotpot`;
-  if(G.turn===0&&!HP.autoHuman)return G.phase==='draw'?'Your turn! Draw from the <em>pot</em> or a pile':G.sel!=null?`Toss <em>${nameOf(G.players[0].hand.find(c=>c.id===G.sel).t)}</em>? Tap ${innerWidth<640?'it again':'again, or drag it to your pile'}`:'Now pick one card to <em>toss back</em>';
+  if(G.turn===0&&!HP.autoHuman)return G.phase==='draw'?'Your turn: <em>draw</em>':G.sel!=null?`Toss <em>${nameOf(G.players[0].hand.find(c=>c.id===G.sel).t)}</em>?`:'<em>Toss</em> a card';
   return `${esc(G.players[G.turn].name)} is choosing…`;
 }
 function render(){
@@ -2133,7 +2194,7 @@ function renderMe(){
   const setN=bs.sets.length;
   const newSet=drawn&&G._setN!=null&&setN>G._setN&&setN<3?bs.sets.find(t=>t.cards.some(c=>c.id===drawn.id)):null;G._setN=setN;
   $('#me').innerHTML=`<div class="mehand"><div class="hand" id="hand" role="group" aria-label="Your hand">${list.map((c,i)=>mk(c,i)).join('')}</div>
-    <div class="drawn">${drawn?`<span class="newnote">new!<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 2c-2 7 1 13 8 16"/><path d="M8 19l4-1-1-4"/></svg></span>${mk(drawn,0,true)}`:`<div class="slot"><span>${G.turn===0&&G.phase==='draw'&&!G.over?'draw your<br>9th card':'9th<br>card'}</span></div>`}</div></div>
+    <div class="drawn">${drawn?`<span class="newnote">new!<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 2c-2 7 1 13 8 16"/><path d="M8 19l4-1-1-4"/></svg></span>${mk(drawn,0,true)}`:`<div class="slot"><span>${G.turn===0&&G.phase==='draw'&&!G.over?'9th':'9th'}</span></div>`}</div></div>
     <div class="mebar"><div class="who ${G.turn===0&&!G.over?'on':''}">${sealHTML(store.get('pname','')||'You',ME_COLOR,11,(G.turn===0&&!G.over&&!HP.autoHuman?'on ':'')+moodOf(0),'av0',true)}</div>
       <span class="sets" title="Sets in your hand">${[0,1,2].map(i=>bowl(i<setN)).join('')}<span>${setN} of 3 sets</span></span>
       ${canDiscard&&G.sel!=null?`<button class="btn primary" data-act="discard">Toss ${nameOf(me.hand.find(c=>c.id===G.sel).t)}</button>`:''}</div>
@@ -2174,14 +2235,14 @@ function openModal(html,name,wide){
 function closeModal(){const m=$('#modal');m&&m.remove();modal=null}
 function whoName(s){return s===0?'You':G.players[s].name}
 function discardsModal(){
-  openModal(`<div class="sheet-head"><h2>Everyone’s discards</h2>${xBtn}</div><p class="billsub" style="text-align:left">Newest on the right. On your turn you can take the top card of anyone’s pile but your own.</p>
-  <div class="drows">${[1,2,3,0].map(s=>{const p=G.players[s],n=p.discards.length,R=seeded(s*17+n);return `<div class="drow"><div class="who2">${sealHTML(p.name,p.color,seedOf(p.name)+s,'sm','',s===0&&!G.online)}<span>${s===0?'Your pile':esc(p.name)}</span><small>${n||'no'} card${n===1?'':'s'}</small></div><div class="cards">${n?p.discards.map((c,i)=>cardHTML(c,{cls:'flat'+(i===n-1?' top':''),style:`--rot:${((R()-.5)*5).toFixed(1)}deg`})).join(''):'<span class="emptymat" aria-hidden="true"></span><span class="none">nothing tossed yet</span>'}</div></div>`}).join('')}</div>`,'discards');
+  openModal(`<div class="sheet-head"><h2>Discards</h2>${xBtn}</div>
+  <div class="drows">${[1,2,3,0].map(s=>{const p=G.players[s],n=p.discards.length,R=seeded(s*17+n);return `<div class="drow"><div class="who2">${sealHTML(p.name,p.color,seedOf(p.name)+s,'sm','',s===0&&!G.online)}<span>${s===0?'Your pile':esc(p.name)}</span><small>${n||'no'} card${n===1?'':'s'}</small></div><div class="cards">${n?p.discards.map((c,i)=>cardHTML(c,{cls:'flat'+(i===n-1?' top':''),style:`--rot:${((R()-.5)*5).toFixed(1)}deg`})).join(''):'<span class="emptymat" aria-hidden="true"></span><span class="none">empty</span>'}</div></div>`}).join('')}</div>`,'discards');
 }
 function handModal(){
   const me=G.players[0],bs=bestSets(me.hand);
   const grp=(s)=>`<div class="group ${s.kind==='triple'?'s':'c'}">${s.cards.map(c=>cardHTML(c,{cls:'flat'})).join('')}<span class="gl">${s.kind==='triple'?'three of a kind':'colour set'}</span></div>`;
   openModal(`<div class="sheet-head"><h2>Your hand</h2>${xBtn}</div>
-  <p>${bs.sets.length?`${bs.sets.length} of 3 sets so far, worth <b>${bs.pts}</b> right now.`:'No sets yet. Pairs and two of a colour are good starts.'}</p>
+  <p>${bs.sets.length?`${bs.sets.length} of 3 sets · <b>${bs.pts}</b>`:'No sets yet.'}</p>
   <div class="groups">${bs.sets.map(grp).join('')}${bs.left.length?`<div class="group">${bs.left.map(c=>cardHTML(c,{cls:'flat dim'})).join('')}</div>`:''}</div>`,'hand');
 }
 function helpModal(tab='rules'){
@@ -2192,23 +2253,23 @@ function helpModal(tab='rules'){
     win:'<path d="M5 26h34c-1 8-7 13-17 13S6 34 5 26z"/><path d="M3 26h38"/><path d="M14 20c-2-3 2-4 0-8M22 19c-2-3 2-4 0-8M30 20c-2-3 2-4 0-8"/><path d="M11 31c3 2 6 2 9 0" opacity=".5"/>'};
   const step=(n,d,html)=>`<li><span class="n">${n}</span><svg viewBox="0 0 44 44" aria-hidden="true">${D[d]}</svg><div>${html}</div></li>`;
   const rules=`<ol class="steps">
-   ${step(1,'draw','<b>Draw one.</b> Fish a card blind from the pot, or lift the top card off someone else’s pile (never your own).')}
-   ${step(2,'toss','<b>Toss one back</b> onto your pile, so you’re holding eight again. Then it’s the next person’s go, round to your right.')}
-   ${step(3,'win','<b>Make three sets of three</b> and you’ve got hotpot. The ninth card always comes from a draw, so nobody wins off the deal.')}
+   ${step(1,'draw','<b>Draw</b> from the pot, or the top of another pile.')}
+   ${step(2,'toss','<b>Toss</b> one onto your pile.')}
+   ${step(3,'win','<b>Three sets</b> of three wins.')}
   </ol>
   <div class="ex">${ex([0,0,0],'three alike',1)}${ex([0,1,2],'one colour',1)}${ex([0,0,1],'not a set',0)}</div>
-  <p class="say">At the end, everyone counts the sets in their hand: three of a kind is worth <em>120</em>, a colour set <em>60</em>, and whoever called hotpot gets <em>100</em> more. If the pot runs dry first, nobody wins.</p>
-  <p class="say small">There are 96 cards: 8 colours, 3 foods in each, 4 of every food. You get 45 seconds a turn, and what the others throw away tells you what they’re keeping.</p>
-  <p class="say small threadkey">In your hand, a <i class="tk" style="--kc:var(--sage)"></i> green thread ties a three of a kind, a <i class="tk" style="--kc:var(--sky)"></i> blue one ties a colour set, and a little <i class="tkd"></i> honey dot means that card is one away from a set.</p>
-  <p class="keys">On a keyboard: <kbd>D</kbd> draws, <kbd>←</kbd> <kbd>→</kbd> and <kbd>Enter</kbd> pick and toss, <kbd>T</kbd> opens this page.</p>`;
-  const cards=`<p class="say small">Eight colours, three foods in each. Three of one food, or one of each food in a colour, makes a set.</p><div class="catgrid">${CATS.map((c,ci)=>`<div class="catrow" style="--c:${c.color};--tl:${[-3,2,-2,3,-1,2.5,-2.5,1.5][ci]}deg"><div class="ctag"><b>${c.col}</b><small>${c.name.toLowerCase()}</small></div><div class="shelf">${[0,1,2].map(i=>cardHTML({t:ci*3+i,id:''},{cls:'flat',style:`--rot:${[-4,1,5][i]}deg`})).join('')}</div></div>`).join('')}</div>`;
-  openModal(`<div class="sheet-head"><h2>How to play</h2>${xBtn}</div>
-  <div class="pentabs" role="tablist"><button role="tab" data-act="helptab" data-tab="rules" aria-selected="${tab==='rules'}">the rules</button><button role="tab" data-act="helptab" data-tab="cards" aria-selected="${tab==='cards'}">all 24 foods</button></div>
+  <p class="say">Three alike <em>120</em> · One colour <em>60</em> · Hotpot <em>+100</em></p>
+  <p class="say small">96 cards · 45 s a turn · Empty pot, no winner</p>
+  <p class="say small threadkey"><i class="tk" style="--kc:var(--sage)"></i> three alike &nbsp; <i class="tk" style="--kc:var(--sky)"></i> one colour &nbsp; <i class="tkd"></i> one away</p>
+  <p class="keys"><kbd>D</kbd> draw · <kbd>←</kbd> <kbd>→</kbd> <kbd>Enter</kbd> toss · <kbd>T</kbd> rules</p>`;
+  const cards=`<div class="catgrid">${CATS.map((c,ci)=>`<div class="catrow" style="--c:${c.color};--tl:${[-3,2,-2,3,-1,2.5,-2.5,1.5][ci]}deg"><div class="ctag"><b>${c.col}</b><small>${c.name.toLowerCase()}</small></div><div class="shelf">${[0,1,2].map(i=>cardHTML({t:ci*3+i,id:''},{cls:'flat',style:`--rot:${[-4,1,5][i]}deg`})).join('')}</div></div>`).join('')}</div>`;
+  openModal(`<div class="sheet-head"><h2>Rules</h2>${xBtn}</div>
+  <div class="pentabs" role="tablist"><button role="tab" data-act="helptab" data-tab="rules" aria-selected="${tab==='rules'}">rules</button><button role="tab" data-act="helptab" data-tab="cards" aria-selected="${tab==='cards'}">foods</button></div>
   ${tab==='rules'?rules:cards}`,'help');
 }
 function creditsModal(){
   const by='<a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>';
-  openModal(`<h2>The music</h2><p class="lede">Eight gentle pieces play in turn: two classics of Cantonese music (廣東音樂) on the gaohu, the high Cantonese fiddle, and six cozy pieces for guzheng, koto, erhu and friends.</p>
+  openModal(`<h2>Music</h2>
   <ul class="credits">
    <li><b>Lian Huan Kou (連環扣), “Linked Rings”</b> by Yan Laolie, performed by Zhang Peijian, recorded by David290, via <a href="https://commons.wikimedia.org/wiki/File:%E8%BF%9E%E7%8E%AF%E6%89%A3.ogg" target="_blank" rel="noopener">Wikimedia Commons</a>, ${by}</li>
    <li><b>Yu Da Ba Jiao (雨打芭蕉), “Rain on Banana Leaves”</b>, traditional, arr. Qiu Hechou, performed by Zhang Peijian, recorded by David290, via <a href="https://commons.wikimedia.org/wiki/File:%E9%9B%A8%E6%89%93%E8%8A%AD%E8%95%89.ogg" target="_blank" rel="noopener">Wikimedia Commons</a>, ${by}</li>
@@ -2217,9 +2278,32 @@ function creditsModal(){
   <div class="foot"><button class="btn primary" data-act="close" data-close>Lovely</button></div>`,'credits');
   $('#modal .sheet').style.width='min(560px,100%)';
 }
+/* your portrait: pick hair, colours and one small extra; kept on this device and shown to the whole table */
+function lookParts(){const m=/^(\d)\.(\d)\.(\w+)\.(\w+)$/.exec(myLook());return m?[+m[1],+m[2],m[3],m[4]]:[0,2,'bob','clip']}
+function lookBody(){
+  const [sk,hr,st,ex]=lookParts(),k=(a)=>a.join('.');
+  const face=(look)=>`<span class="lf">${faceSVG({...parseLook(look),top:ME_COLOR},11)}</span>`;
+  const row=(lbl,items)=>`<div class="lrow"><span class="ll">${lbl}</span><div class="lopts">${items}</div></div>`;
+  const opt=(key,v,on,inner,label)=>`<button type="button" class="lopt${on?' on':''}" data-act="lookset" data-k="${key}" data-v="${v}" aria-pressed="${on}" aria-label="${label}">${inner}</button>`;
+  return `<div class="lprev">${sealHTML('You',ME_COLOR,11,'lg','',true)}</div>
+  ${row('Hair',STYLES.map(s=>opt(2,s,s===st,face(k([sk,hr,s,ex])),s)).join(''))}
+  ${row('Colour',HAIR.map((c,i)=>opt(1,i,i===hr,`<i class="dab" style="--dc:${c}"></i>`,'hair colour '+(i+1))).join(''))}
+  ${row('Skin',SKIN.map((c,i)=>opt(0,i,i===sk,`<i class="dab" style="--dc:${c}"></i>`,'skin tone '+(i+1))).join(''))}
+  ${row('Extra',EXTRAS.map(e=>opt(3,e,e===ex,face(k([sk,hr,e==='sticks'?'bun':st,e])),e)).join(''))}
+  <div class="foot"><button class="link" data-act="lookrand">Shuffle</button><button class="btn primary" data-act="close" data-close>Done</button></div>`;
+}
+function lookModal(){openModal(`<div class="sheet-head"><h2>You</h2>${xBtn}</div><div id="lookbody">${lookBody()}</div>`,'look');$('#modal .sheet').style.width='min(520px,100%)'}
+function setLook(parts){
+  if(parts[3]==='sticks')parts[2]='bun';
+  const v=parts.join('.');if(!parseLook(v))return;store.set('look',v);sfx.select();
+  const b=$('#lookbody');if(b)b.innerHTML=lookBody();
+  document.querySelectorAll('#lobby .place.me').forEach(pl=>{const old=pl.querySelector('.seal');if(old)old.outerHTML=sealHTML('You',ME_COLOR,11,'sm','',true)});
+  if(net.ws&&net.ws.readyState===1)net.send({t:'join',name:net.name(),token:net.token(),look:v});
+  if(G&&!G.over)render();
+}
 function quitModal(){
-  openModal(`<div class="quitart" aria-hidden="true"><svg viewBox="0 0 54 54"><ellipse cx="27" cy="21" rx="16" ry="5.5" fill="#c79a6a" stroke="#8a6040" stroke-width="1.4"/><path d="M14 23l-3 19M40 23l3 19M22 26l-1 18M32 26l1 18M13 35h28" fill="none" stroke="#8a6040" stroke-width="2" stroke-linecap="round"/><path d="M33 12c-2-3 2-4 0-7M27 13c-2-3 2-4 0-7" fill="none" stroke="#b9a58c" stroke-width="1.4" stroke-linecap="round"/></svg></div><h2>Leave the table?</h2><p class="say">${G&&G.online?'A computer player will keep your stool warm until you come back.':'This round ends here, and nobody wins it.'}</p>
-  <div class="foot"><button class="link" data-act="leave">Leave anyway</button><button class="btn primary" data-act="close" data-close>Keep playing</button></div>`,'quit');
+  openModal(`<div class="quitart" aria-hidden="true"><svg viewBox="0 0 54 54"><ellipse cx="27" cy="21" rx="16" ry="5.5" fill="#c79a6a" stroke="#8a6040" stroke-width="1.4"/><path d="M14 23l-3 19M40 23l3 19M22 26l-1 18M32 26l1 18M13 35h28" fill="none" stroke="#8a6040" stroke-width="2" stroke-linecap="round"/><path d="M33 12c-2-3 2-4 0-7M27 13c-2-3 2-4 0-7" fill="none" stroke="#b9a58c" stroke-width="1.4" stroke-linecap="round"/></svg></div><h2>Leave?</h2>${G&&G.online?'<p class="say">A computer takes your seat.</p>':''}
+  <div class="foot"><button class="link" data-act="leave">Leave</button><button class="btn primary" data-act="close" data-close>Stay</button></div>`,'quit');
   $('#modal .sheet').style.width='min(420px,100%)';
 }
 function showResults(){
@@ -2233,18 +2317,18 @@ function showResults(){
   const won=G.winner===0,coins=1+(won?1:0);
   if(!G.counted){G.counted=true;const st=stats();st.games++;if(won)st.wins++;st.coins+=coins;st.best=Math.max(st.best,rows.find(r=>r.i===0).pts);store.set('stats',st)}
   G.fresh.clear();
-  const title=G.winner==null?'The pot ran dry':won?'You won the hotpot!':esc(G.players[G.winner].name)+' won this one';
+  const title=G.winner==null?'Pot ran dry':won?'You win':esc(G.players[G.winner].name)+' wins';
   const mood=i=>G.winner==null?'':G.winner===i?'happy':'';
   const lineCards=bs=>`${bs.sets.map(s=>`<span class="set ${s.kind==='triple'?'s':'c'}">${s.cards.map(c=>cardHTML(c,{cls:'flat'})).join('')}</span>`).join('')}${bs.left.length?`<span class="set left">${bs.left.map(c=>cardHTML(c,{cls:'flat dim'})).join('')}</span>`:''}`;
-  openModal(`<div class="billhead"><h2>${title}</h2><p class="billsub">${G.winner==null?'Nobody made three sets before the pot ran out, so nobody wins this round.':`Table for four, round ${G.round}. Here’s what everyone was holding.`}</p></div>
+  openModal(`<div class="billhead"><h2>${title}</h2><p class="billsub">Round ${G.round}</p></div>
   <div class="lines">${rows.map((r,k)=>`<div class="line ${G.winner===r.i?'win':''}" style="--d:${(k*.09).toFixed(2)}s">
     ${sealHTML(r.p.name,r.p.color,seedOf(r.p.name)+r.i,'sm '+mood(r.i),'',r.i===0&&!G.online?true:r.p.color===ME_COLOR)}
-    <div class="lwho"><b>${r.i===0?'You':esc(r.p.name)}</b><small>${r.bs.sets.length?r.bs.sets.map(s=>s.kind==='triple'?'120':'60').join(' + '):'no sets'}${r.bonus?`<br>+${r.bonus} hotpot!`:''}</small></div>
+    <div class="lwho"><b>${r.i===0?'You':esc(r.p.name)}</b><small>${r.bs.sets.length?r.bs.sets.map(s=>s.kind==='triple'?'120':'60').join(' + '):'no sets'}${r.bonus?`<br>+${r.bonus}`:''}</small></div>
     <div class="lcards">${lineCards(r.bs)}</div>
     <span class="amt">${r.total}</span>${G.winner===r.i?'<span class="hanko thump" aria-label="winner"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="'+roughCircle(30,30,26,1.4,r.i+3,48)+'" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>won</span></span>':''}</div>`).join('')}</div>
-  <div class="total"><span>table total</span><i></i><b>${table}</b></div>
-  <p class="coins"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13.4" rx="8.6" ry="8.2" fill="#b07a26"/><ellipse cx="12" cy="12" rx="8.6" ry="8.2" fill="#e6b44c"/><ellipse cx="12" cy="12" rx="5.6" ry="5.2" fill="none" stroke="#b07a26" stroke-width="1.3"/><path d="M8.6 9.4c1.2-1.6 3-2.2 4.6-2" fill="none" stroke="#fff3cf" stroke-width="1.2" stroke-linecap="round"/></svg>${won?'Two prize wheel coins for you, one for sitting down and one for the win.':'One prize wheel coin for sitting down.'}</p>
-  <div class="foot"><button class="link" data-act="lobby">Back to the lobby</button><button class="btn primary" data-act="again">Another round</button></div>`,'results','results');
+  <div class="total"><span>total</span><i></i><b>${table}</b></div>
+  <p class="coins"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13.4" rx="8.6" ry="8.2" fill="#b07a26"/><ellipse cx="12" cy="12" rx="8.6" ry="8.2" fill="#e6b44c"/><ellipse cx="12" cy="12" rx="5.6" ry="5.2" fill="none" stroke="#b07a26" stroke-width="1.3"/><path d="M8.6 9.4c1.2-1.6 3-2.2 4.6-2" fill="none" stroke="#fff3cf" stroke-width="1.2" stroke-linecap="round"/></svg>+${coins}</p>
+  <div class="foot"><button class="link" data-act="lobby">Lobby</button><button class="btn primary" data-act="again">Another round</button></div>`,'results','results');
   const slow=countUp();setTimeout(()=>sfx.stamp(),slow?700:250);
   G.result={rows,table};
 }
@@ -2294,11 +2378,14 @@ document.addEventListener('click',e=>{
     else{ripple(e);sfx.bubbles();const now=performance.now();potTaps=now-potT<1600?potTaps+1:1;potT=now;if(potTaps===5){potTaps=0;heartSteam();setTimeout(()=>sfx.chime(4),300)}}
     return;
   }
+  const os=e.target.closest('.opp .seal');
+  if(os&&G&&!modal){const k=+os.id.slice(2)||1;sfx.chime(k+1);if(!RM.matches)os.animate([{transform:'none'},{transform:'rotate(-9deg) scale(1.08)',offset:.3},{transform:'rotate(5deg)',offset:.6},{transform:'none'}],{duration:620,easing:'ease-out'});return}
+  if(G&&!modal&&!e.target.closest('button,a,.card,.pile,.deck,.opp,#me,.hud,.slipwrap,.tools,.modal,[data-act]')&&touchTable(e))return;
   const b=e.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act;
   switch(a){
     case'startnow':startGame();break;
-    case'again':if(G&&G.online){net.isHost()?net.send({t:'again'}):toast('Waiting for the host to deal again')}else startGame();break;
+    case'again':if(G&&G.online){net.isHost()?net.send({t:'again'}):toast('Waiting for host')}else startGame();break;
     case'lobby':case'leave':net.leave();showLobby();break;
     case'online':net.create();break;
     case'copylink':net.copyLink();break;
@@ -2310,6 +2397,9 @@ document.addEventListener('click',e=>{
     case'help':if(!modal)helpModal();break;
     case'helptab':closeModal();helpModal(b.dataset.tab);break;
     case'credits':if(!modal)creditsModal();break;
+    case'look':if(!modal)lookModal();break;
+    case'lookset':{const p=lookParts(),k=+b.dataset.k,v=b.dataset.v;p[k]=k<2?+v:v;setLook(p);break}
+    case'lookrand':setLook([(Math.random()*SKIN.length)|0,(Math.random()*HAIR.length)|0,STYLES[(Math.random()*STYLES.length)|0],EXTRAS[(Math.random()*5)|0]]);break;
     case'quit':if(G&&!modal&&!G.over)quitModal();break;
     case'helper':helper=!helper;store.set('helper',helper);G&&renderMe();break;
     case'mute':setSound(!sndOn);break;
@@ -2395,10 +2485,10 @@ const net={
   token(){let t=store.get('token',null);if(!t||t.length<16){t=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');store.set('token',t)}return t},
   name(){return store.get('pname','')||'Guest'},
   isHost(){return !!(this.lobby&&this.lobby.host)||!!(G&&G.hostFlag)},
-  send(m){if(this.ws&&this.ws.readyState===1)this.ws.send(JSON.stringify(m));else toast('Finding the table again…')},
+  send(m){if(this.ws&&this.ws.readyState===1)this.ws.send(JSON.stringify(m));else toast('Reconnecting…')},
   async create(){
     try{const r=await fetch('/api/new',{cache:'no-store'});if(!r.ok)throw 0;const {code}=await r.json();this.join(code)}
-    catch(e){toast('Online tables work on the hosted version of the game')}
+    catch(e){toast('Online play needs the hosted game')}
   },
   join(code){
     this.leave();this.code=code.toUpperCase();this.closing=false;this.tries=0;
@@ -2407,11 +2497,11 @@ const net={
   },
   open(){
     const proto=location.protocol==='https:'?'wss':'ws';
-    let ws;try{ws=new WebSocket(`${proto}://${location.host}/ws/${this.code}`)}catch(e){return toast('Could not reach the table')}
+    let ws;try{ws=new WebSocket(`${proto}://${location.host}/ws/${this.code}`)}catch(e){return toast('Can’t reach the table')}
     this.ws=ws;
-    ws.onopen=()=>{this.tries=0;this.send({t:'join',name:this.name(),token:this.token()})};
+    ws.onopen=()=>{this.tries=0;this.send({t:'join',name:this.name(),token:this.token(),look:myLook()})};
     ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data)}catch(e){return}this.onMsg(m)};
-    ws.onclose=()=>{if(this.ws!==ws||this.closing)return;this.ws=null;if(this.tries++<8){toast('Lost the table for a moment, reconnecting…');setTimeout(()=>{if(!this.closing&&this.code)this.open()},Math.min(4000,600*this.tries))}else{toast("Couldn't get back to the table");this.leave();showLobby()}};
+    ws.onclose=()=>{if(this.ws!==ws||this.closing)return;this.ws=null;if(this.tries++<8){toast('Reconnecting…');setTimeout(()=>{if(!this.closing&&this.code)this.open()},Math.min(4000,600*this.tries))}else{toast("Couldn't get back to the table");this.leave();showLobby()}};
   },
   leave(){
     this.closing=true;clearInterval(this.iv);
@@ -2432,27 +2522,27 @@ const net={
   },
   onMsg(m){
     if(m.t==='error'){toast(m.error);if(/already started|full/i.test(m.error)){this.leave();showLobby()}return}
-    if(m.t==='lobby'){this.lobby=m;this.renderLobby(m)}
-    if(m.t==='state')this.applyState(m);
+    if(m.t==='lobby'){(m.seats||[]).forEach(s=>LOOKS[s.name]=s.look||'');this.lobby=m;this.renderLobby(m)}
+    if(m.t==='state'){(m.players||[]).forEach(p=>{if(p.kind==='human')LOOKS[p.name]=p.look||''});this.applyState(m)}
   },
   renderLobby(m){
     $('#game').hidden=true;$('#lobby').hidden=false;
     if(!$('#olSeats')){
       $('#lobby').innerHTML=`<div class="menu paper lift">${tapes()}
         ${heroHTML('an online table, just for friends')}
-        <div class="invite"><p class="q">Your table’s code</p><div class="code">${esc(this.code)}</div>
+        <div class="invite"><p class="q">Table</p><div class="code">${esc(this.code)}</div>
           <div class="invrow"><input id="olLink" class="field" readonly value="${esc(this.link())}" aria-label="Invite link"><button class="btn sm primary" data-act="copylink">Copy link</button></div></div>
         <div class="waiting">${ringHTML()}<p id="ctext"></p></div>
         <div class="guests" id="olSeats" aria-label="Seats"></div>
-        <label class="q" for="pname">What should we call you?</label><input id="pname" class="field" maxlength="16" value="${esc(store.get('pname',''))}" placeholder="Guest" autocomplete="nickname">
+        <label class="q" for="pname">Name</label><input id="pname" class="field" maxlength="16" value="${esc(store.get('pname',''))}" placeholder="Guest" autocomplete="nickname">
         <div id="olHost"></div>
-        <div class="links"><button class="link" data-act="leave">Leave the table</button></div></div>`;
-      $('#pname').addEventListener('change',e=>{store.set('pname',e.target.value);this.send({t:'join',name:this.name(),token:this.token()})});
+        <div class="links"><button class="link" data-act="leave">Leave</button></div></div>`;
+      $('#pname').addEventListener('change',e=>{store.set('pname',e.target.value);this.send({t:'join',name:this.name(),token:this.token(),look:myLook()})});
     }
     this.endsAt=performance.now()+(m.msLeft??0);
-    $('#olSeats').innerHTML=Array.from({length:4},(_,i)=>{const s=m.seats[i];return s?`<div class="place ${s.you?'me':''}">${sealHTML(s.name,colorFor(s.name,s.you?0:i+1),seedOf(s.name)+i,'sm','',!!s.you)}<span class="gname">${esc(s.name)}</span>${i===0?'<small>host</small>':''}${s.connected?'':'<small>away</small>'}</div>`:emptySeatHTML('a computer sits here')}).join('');
-    $('#ctext').innerHTML=m.host?'<b>Send the link to friends.</b><br>We start when the incense burns down, or whenever you say so.':'<b>You\'re in!</b><br>Waiting for the host to start. Empty seats get computer players.';
-    $('#olHost').innerHTML=m.host?`<p class="q">How spicy should the computer players be?</p>${spiceHTML(m.diff,k=>`data-act="oldiff" data-d="${k}"`)}<button class="btn primary big" data-act="olstart" style="width:100%;margin-top:14px">Start now</button>`:`<p class="sub note">computer players: ${esc(((DIFFS[m.diff]||{}).label||'').toLowerCase())}</p>`;
+    $('#olSeats').innerHTML=Array.from({length:4},(_,i)=>{const s=m.seats[i];return s?`<div class="place ${s.you?'me':''}" ${s.you?'data-act="look" role="button" tabindex="0" aria-label="Change your portrait"':''}>${sealHTML(s.name,colorFor(s.name,s.you?0:i+1),seedOf(s.name)+i,'sm','',!!s.you)}<span class="gname">${esc(s.name)}</span>${i===0?'<small>host</small>':''}${s.connected?'':'<small>away</small>'}</div>`:emptySeatHTML('computer')}).join('');
+    $('#ctext').innerHTML=m.host?'Share the link':'Waiting for host';
+    $('#olHost').innerHTML=m.host?`<p class="q">Spice</p>${spiceHTML(m.diff,k=>`data-act="oldiff" data-d="${k}"`)}<button class="btn primary big" data-act="olstart" style="width:100%;margin-top:14px">Start now</button>`:`<p class="sub note">spice: ${esc(((DIFFS[m.diff]||{}).label||'').toLowerCase())}</p>`;
     clearInterval(this.iv);
     this.iv=setInterval(()=>{if(!$('#cring')){clearInterval(this.iv);return}setRing(Math.max(0,this.endsAt-performance.now())/1000)},200);
   },
@@ -2503,14 +2593,14 @@ new ResizeObserver(()=>fitTable()).observe($('#felt'));
 bakeArt().then(()=>{if(G)render()});
 showLobby();
 // online play is only offered where the game's own server is there to answer
-if(/^https?:$/.test(location.protocol))fetch('/api/new',{cache:'no-store'}).then(r=>r.ok&&(r.headers.get('content-type')||'').includes('json')?r.json():null).then(j=>{if(j&&j.code){ONLINE_OK=true;if(L&&!$('#lobby').hidden&&!$('[data-act=online]')){const row=$('#lobby .links');if(row)row.insertAdjacentHTML('afterbegin','<button class="link" data-act="online">Play online with friends</button>')}}}).catch(()=>{});
+if(/^https?:$/.test(location.protocol))fetch('/api/new',{cache:'no-store'}).then(r=>r.ok&&(r.headers.get('content-type')||'').includes('json')?r.json():null).then(j=>{if(j&&j.code){ONLINE_OK=true;if(L&&!$('#lobby').hidden&&!$('[data-act=online]')){const row=$('#lobby .links');if(row)row.insertAdjacentHTML('afterbegin','<button class="link" data-act="online">Play online</button>')}}}).catch(()=>{});
 {const room=(new URLSearchParams(location.search).get('room')||'').toUpperCase();
  if(/^[A-Z]{4}$/.test(room)){
   ONLINE_OK=true;net.code=room;
-  $('#lobby').innerHTML=`<div class="menu paper lift">${tapes()}${heroHTML(`you're invited to table <b>${room}</b>`)}
-    <label class="q" for="jname">What should we call you?</label><input id="jname" class="field" maxlength="16" value="${esc(store.get('pname',''))}" placeholder="Guest" autocomplete="nickname">
+  $('#lobby').innerHTML=`<div class="menu paper lift">${tapes()}${heroHTML(`table <b>${room}</b>`)}
+    <label class="q" for="jname">Name</label><input id="jname" class="field" maxlength="16" value="${esc(store.get('pname',''))}" placeholder="Guest" autocomplete="nickname">
     <div class="go"><button class="btn primary big" id="jgo">Sit down</button></div>
-    <div class="links"><button class="link" data-act="leave">Play by myself instead</button></div></div>`;
+    <div class="links"><button class="link" data-act="leave">Play solo</button></div></div>`;
   clearInterval(L&&L.iv);L=null;
   $('#jgo').onclick=()=>{store.set('pname',$('#jname').value.trim());net.join(room)};
   $('#jname').addEventListener('keydown',e=>{if(e.key==='Enter')$('#jgo').click()});

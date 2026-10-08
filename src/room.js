@@ -8,6 +8,8 @@ const NPC_NAMES = ['Jina', 'Zeki', 'Eshe'];
 const MAX_HUMANS = 4;
 const IDLE_EXPIRE_MS = 2 * 60 * 60 * 1000;
 
+// a portrait choice: skin.hair.style.extra, e.g. "2.3.bun.clip"; anything else is dropped
+const cleanLook = (s) => (/^[0-5]\.[0-6]\.(bob|short|long|bun|curls|puff)\.(none|clip|glasses|freckles|hoops|sticks)$/.test(String(s ?? '')) ? String(s) : '');
 const cleanName = (s) => String(s ?? '').replace(/[^\p{L}\p{N} _.'-]/gu, '').trim().slice(0, 16) || 'Guest';
 
 export class RoomLogic {
@@ -45,7 +47,7 @@ export class RoomLogic {
   lobbyView(token) {
     return {
       t: 'lobby', phase: this.s.phase, diff: this.s.diff,
-      seats: this.s.humans.map((h) => ({ name: h.name, connected: this.isConnected(h.token), you: h.token === token })),
+      seats: this.s.humans.map((h) => ({ name: h.name, look: h.look || '', connected: this.isConnected(h.token), you: h.token === token })),
       host: token === this.hostToken(), msLeft: this.s.lobbyEndsAt ? Math.max(0, this.s.lobbyEndsAt - this.now()) : null,
       max: MAX_HUMANS,
     };
@@ -111,10 +113,16 @@ export class RoomLogic {
     if (seat < 0) {
       if (this.s.phase !== 'lobby') return this.err(c, 'That game already started. Ask the host to start a new one.');
       if (this.s.humans.length >= MAX_HUMANS) return this.err(c, 'This table is full');
-      this.s.humans.push({ token, name: cleanName(msg.name) });
+      this.s.humans.push({ token, name: cleanName(msg.name), look: cleanLook(msg.look) });
       seat = this.s.humans.length - 1;
       if (this.s.humans.length === 1) { this.s.lobbyEndsAt = this.now() + LOBBY_MS; this.addTimer('lobbyStart', LOBBY_MS); }
-    } else if (msg.name) this.s.humans[seat].name = cleanName(msg.name);
+    } else {
+      if (msg.name) this.s.humans[seat].name = cleanName(msg.name);
+      if (msg.look !== undefined) {
+        this.s.humans[seat].look = cleanLook(msg.look);
+        if (this.s.game) this.s.game.players[seat].look = this.s.humans[seat].look;
+      }
+    }
     c.token = token;
     if (this.s.game && !this.s.game.over) { this.s.game.players[seat].connected = true; this.schedule(); }
     this.clearTimer('expire');
@@ -129,7 +137,7 @@ export class RoomLogic {
   /* ---- game flow ---- */
   startGame() {
     const seats = [];
-    this.s.humans.forEach((h) => seats.push({ name: h.name, kind: 'human', connected: this.isConnected(h.token) }));
+    this.s.humans.forEach((h) => seats.push({ name: h.name, look: h.look || '', kind: 'human', connected: this.isConnected(h.token) }));
     for (let i = 0; seats.length < 4; i++) seats.push({ name: NPC_NAMES[i % 3], kind: 'npc' });
     this.s.game = createGame(seats, this.env.rnd);
     this.s.phase = 'playing'; this.s.lobbyEndsAt = null;

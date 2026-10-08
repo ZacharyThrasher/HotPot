@@ -163,7 +163,7 @@ export function viewFor(g, mySeat) {
   const n = g.players.length, rel = (s) => (s - mySeat + n) % n;
   const players = Array.from({ length: n }, (_, i) => {
     const p = g.players[(mySeat + i) % n];
-    return { name: p.name, kind: p.kind, connected: p.connected !== false, handCount: p.hand.length, discards: p.discards, hand: i === 0 || g.over ? p.hand : undefined };
+    return { name: p.name, look: p.look || '', kind: p.kind, connected: p.connected !== false, handCount: p.hand.length, discards: p.discards, hand: i === 0 || g.over ? p.hand : undefined };
   });
   return { players, turn: rel(g.turn), round: g.round, phase: g.phase, drawCount: g.draw.length, drawnId: g.turn === mySeat && g.phase === 'discard' ? g.drawn?.id ?? null : null, over: g.over, winner: g.winner == null ? null : rel(g.winner), log: g.log.slice(0, 3), result: g.over ? scoreGame(g).map((r) => ({ ...r, seat: rel(r.seat) })) : null };
 }
