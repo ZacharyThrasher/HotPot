@@ -839,6 +839,10 @@ button.card{cursor:pointer}
   .pile .cnt{right:calc(var(--pw)*-.62);bottom:calc(var(--pw)*-.3)}
 }
 .chili small{white-space:nowrap}
+.turnglow{position:fixed;width:90px;height:90px;border-radius:50%;pointer-events:none;z-index:27;background:radial-gradient(closest-side,rgba(255,214,140,.55),rgba(255,190,100,.18) 60%,transparent);mix-blend-mode:screen}
+.slip .fuse.last i::after{animation:fuseflick .32s steps(3) infinite}
+@keyframes fuseflick{0%{opacity:1;transform:scale(1)}33%{opacity:.55;transform:scale(.85)}66%{opacity:.9;transform:scale(1.15)}}
+@media (prefers-reduced-motion:reduce){.slip .fuse.last i::after{animation:none}}
 .sets svg.splash{animation:splash .7s .55s cubic-bezier(.2,1.6,.4,1) both}
 .sets svg.splash::after{content:none}
 @keyframes splash{0%{transform:scale(1)}30%{transform:scale(1.35) rotate(-6deg);filter:drop-shadow(0 -4px 6px rgba(160,220,120,.8))}100%{transform:none}}
@@ -1555,7 +1559,7 @@ const sfx={
   // the bill adding up: soft rising ticks
   count:k=>{pluck(note(4+k),{v:.035,bright:.75,dur:.5})},
   turn:()=>{pluck(note(5),{v:.16});pluck(note(7),{t:.11,v:.13})},
-  tick:()=>{rustle({d:.035,f:2200,f2:2000,q:9,v:.12})},
+  tick:(k=0)=>{const p=1+k*.06;rustle({d:.035,f:2200*p,f2:2000*p,q:9,v:.1+k*.008})},
   win:()=>{[5,6,7,8,9,10,12].forEach((k,i)=>pluck(note(k),{t:i*.12,v:.2,pan:(i%2?.3:-.3)}));pluck(note(0)/2,{t:0,v:.25,bright:.3,dur:3.4});pluck(note(15),{t:1,v:.08,bright:.9})},
   lose:()=>{[7,5,3].forEach((k,i)=>pluck(note(k),{t:i*.2,v:.13,bright:.35}))},
   chime:i=>{pluck(note(8+i%6),{v:.11,bright:.85,dur:2.2,pan:rnd(-.6,.6)})},
@@ -1915,9 +1919,9 @@ function tick(){
   const rem=Math.max(0,G.deadline-now),f=Math.min(1,rem/TURN_MS);
   const av=$('#av0'),bar=$('#bar'),cls=f<.25?'r':f<.5?'y':'';
   if(av){av.querySelector('.tm').setAttribute('stroke-dasharray',`${(f*100).toFixed(1)} 100`);av.classList.toggle('y',cls==='y');av.classList.toggle('r',cls==='r')}
-  if(bar){bar.firstElementChild.style.width=(f*100).toFixed(2)+'%';bar.className='fuse '+cls}
+  if(bar){bar.firstElementChild.style.width=(f*100).toFixed(2)+'%';bar.className='fuse '+cls+(rem<5000&&rem>0?' last':'')}
   if(rem<=0&&isFinite(G.deadline)&&!G.online)timeUp();
-  const sec=Math.ceil(rem/1000); if(f<.2&&sec!==G._sec){G._sec=sec;sfx.tick()}
+  const sec=Math.ceil(rem/1000); if(sec<=5&&sec>0&&sec!==G._sec){G._sec=sec;sfx.tick(5-sec)}
 }
 
 /* =============================== THE BIG MOMENT =============================== */
@@ -1987,6 +1991,7 @@ function motionPlay(snap){
       if(!from){const cell=el.closest('[class^="cell-"]'),seat=cell?SEAT_OF[cell.classList[0]]:null;from=el.closest('#me')||!seat?snap.deck:oppRect(seat)}
       if(!from)return;
       if(from.deck&&el.closest('#me'))flipIn(el,from.r);else flyEl(el,from.r);
+      const st=el.closest('.pile .stack');if(st)st.animate([{transform:'none'},{transform:'scale(1.03,.97)',offset:.4},{transform:'none'}],{duration:260,delay:470,easing:'ease-out'});
     }else{
       const from=snap.m.get(id)||snap.deck,to=oppRect(G.turn);
       if(from&&to)flyGhost(from,to.r);
@@ -2003,6 +2008,25 @@ function flyEl(el,from,dur=560){
               {transform:`translate(${dx*.45}px,${dy*.45-lift}px) scale(${(k+1.12)/2}) rotate(${spin}deg) ${base}`,zIndex:30,offset:.5},
               {transform:`translate(0,-4px) scale(1.03) ${base}`,offset:.85},
               {transform:base||'none'}],{duration:dur,easing:'cubic-bezier(.3,.7,.3,1)'});
+}
+/* someone took from your pile: it gives a little tug their way, and they blink happily */
+function tookCue(seat){
+  const pile=$('#pile0'),o=$('#av'+seat);if(!pile||RM.matches||HP.fast)return;
+  const a=pile.getBoundingClientRect(),b=(o||pile).getBoundingClientRect();
+  const dx=b.left+b.width/2-(a.left+a.width/2),dy=b.top+b.height/2-(a.top+a.height/2),d=Math.hypot(dx,dy)||1;
+  pile.animate([{transform:'none'},{transform:`translate(${(dx/d*7).toFixed(1)}px,${(dy/d*7).toFixed(1)}px) rotate(${dx>0?2:-2}deg)`,offset:.35},{transform:'none'}],{duration:420,easing:'cubic-bezier(.3,1.4,.5,1)'});
+  if(o)o.animate([{transform:'none',filter:'none'},{transform:'scale(1.12)',filter:'brightness(1.15)',offset:.4},{transform:'none',filter:'none'}],{duration:480,delay:120,easing:'ease-out'});
+}
+/* a short warm glow drifts from the last player to whoever's turn it is now */
+function turnGlow(from,to){
+  if(RM.matches||HP.fast)return;
+  const a=$('#av'+from),b=$('#av'+to);if(!a||!b)return;
+  const r1=a.getBoundingClientRect(),r2=b.getBoundingClientRect();if(!r1.width||!r2.width)return;
+  const g=document.createElement('i');g.className='turnglow';g.style.left=(r1.left+r1.width/2)+'px';g.style.top=(r1.top+r1.height/2)+'px';
+  $('#layer').appendChild(g);
+  const dx=r2.left+r2.width/2-(r1.left+r1.width/2),dy=r2.top+r2.height/2-(r1.top+r1.height/2);
+  const an=g.animate([{transform:'translate(-50%,-50%) scale(.6)',opacity:0},{opacity:.85,offset:.25},{transform:`translate(calc(${dx}px - 50%),calc(${dy}px - 50%)) scale(1.2)`,opacity:.9,offset:.8},{transform:`translate(calc(${dx}px - 50%),calc(${dy}px - 50%)) scale(1.6)`,opacity:0}],{duration:620,easing:'cubic-bezier(.4,0,.2,1)'});
+  an.onfinish=()=>g.remove();setTimeout(()=>g.remove(),1000);
 }
 /* drawing blind from the pot: a back flies over, turns, and becomes your card */
 function flipIn(el,from){
@@ -2033,7 +2057,7 @@ function pileHTML(seat){
   const mine=seat===0&&G.turn===0&&G.phase==='discard'&&!G.over;
   const top=p.discards.slice(-3);
   const cards=top.map((c,i)=>{
-    const k=top.length-1-i,rot=((c.id*37)%11)-5;
+    const k=top.length-1-i,rot=((c.id*37)%7)-3;
     return cardHTML(c,{cls:'flat '+((G.fresh.has(c.id)&&i===top.length-1)?'pop':''),style:`transform:translate(${-k*2}px,${-k*1.5}px) rotate(${i===top.length-1?rot:(k%2?-7:6)}deg)`});
   }).join('');
   const tag=canTake||mine?'button':'div';
@@ -2078,6 +2102,11 @@ function render(){
   fitPot();
   if(dealIn){dealIn=false;dealAnim()}
   motionPlay(snap);
+  // little cues carried by motion: someone took from your pile; whose turn it is now
+  const n0=G.players[0].discards.length;
+  if(G._n0!=null&&n0<G._n0&&G.turn!==0)tookCue(G.turn);
+  if(G._lt!=null&&G.turn!==G._lt&&!G.over)turnGlow(G._lt,G.turn);
+  G._n0=n0;G._lt=G.turn;
   G.fresh.clear();
 }
 function renderMe(){
