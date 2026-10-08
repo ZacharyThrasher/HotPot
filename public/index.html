@@ -3,7 +3,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Hotpot</title>
-<meta name="theme-color" content="#2a2238">
+<meta name="theme-color" content="#1e120c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M22 18c-3-4 3-6 0-10M32 18c-3-4 3-6 0-10M42 18c-3-4 3-6 0-10' fill='none' stroke='%23f1cf86' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M6 30h52c0 15-11 26-26 26S6 45 6 30z' fill='%232a2220'/%3E%3Cpath d='M9 30h46c-1 5-6 8-23 8S10 35 9 30z' fill='%23d4452a'/%3E%3Cpath d='M32 30h23c-1 5-6 8-23 8z' fill='%23f3e3bc'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -955,6 +959,11 @@ button.card{cursor:pointer}
 
 /* scene changes crossfade */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.45s;animation-timing-function:ease-in-out}
+
+/* first game only: the places you can draw from, and your own pile when it's time to toss, glow softly */
+#game.firstgame .deck.take,#game.firstgame .pile.take .stack,#game.firstgame .pile.mine .stack{animation:firstglow 1.9s ease-in-out infinite}
+@keyframes firstglow{0%,100%{filter:drop-shadow(0 0 0 rgba(255,214,140,0))}50%{filter:drop-shadow(0 0 7px rgba(255,214,140,.95)) drop-shadow(0 0 18px rgba(255,190,100,.55))}}
+@media (prefers-reduced-motion:reduce){#game.firstgame .deck.take,#game.firstgame .pile.take .stack,#game.firstgame .pile.mine .stack{animation:none;filter:drop-shadow(0 0 6px rgba(255,214,140,.85))}}
 </style>
 
 <body>
@@ -1909,7 +1918,7 @@ const sfx={
   lose:()=>{[7,5,3].forEach((k,i)=>pluck(note(k),{t:i*.2,v:.13,bright:.35}))},
   chime:i=>{pluck(note(8+i%6),{v:.11,bright:.85,dur:2.2,pan:rnd(-.6,.6)})},
   bubbles:()=>{for(let i=0;i<4;i++)bloop({t:i*rnd(.04,.11),v:.08})},
-  stamp:()=>{if(samp('stamp',{v:.6})){thump({f:110,v:.2,d:.2});return}thump({f:110,v:.45,d:.2});rustle({d:.1,f:900,f2:400,v:.18})},
+  stamp:()=>{musDuck();if(samp('stamp',{v:.6})){thump({f:110,v:.2,d:.2});return}thump({f:110,v:.45,d:.2});rustle({d:.1,f:900,f2:400,v:.18})},
 };
 /* gentle phone buzzes: only where supported, and never when the sound is off */
 function buzz(p){if(!sndOn||!navigator.vibrate)return;try{navigator.vibrate(p)}catch(e){}}
@@ -1949,6 +1958,7 @@ const REC={els:[],cur:-1,ok:null,vol:.32,fade:null};
 function recEl(i){
   if(REC.els[i])return REC.els[i];
   const a=new Audio();a.src=TRACKS[i].src;a.preload='auto';a.volume=0;
+  musRoute(a);
   a.addEventListener('error',()=>{if(REC.ok!==true){REC.ok=false;if(musOn)music(true)}});
   a.addEventListener('playing',()=>{REC.ok=true});
   a.addEventListener('timeupdate',()=>{if(REC.cur===i&&a.duration&&a.duration-a.currentTime<5&&!a._x){a._x=1;recPlay((i+1)%TRACKS.length)}});
@@ -1987,6 +1997,43 @@ function wakeAudio(){
 }
 ['pointerdown','keydown'].forEach(ev=>addEventListener(ev,wakeAudio,{passive:true}));
 document.addEventListener('visibilitychange',()=>{const a=REC.els[REC.cur];if(a&&musOn){if(document.hidden)a.pause();else a.play().catch(()=>{})}if(!A.ctx)return;if(document.hidden)A.ctx.suspend();else A.ctx.resume()});
+
+/* music that listens to the table: the recorded tracks run through a filter (muffled while a sheet is open)
+   and a duck (dips under the stamp); a soft heartbeat joins when anyone is one set from winning */
+function musRoute(a){
+  const c=A.ctx;if(!c||!c.createMediaElementSource||A.recFail)return;
+  try{
+    if(!A.recLP){A.recLP=c.createBiquadFilter();A.recLP.type='lowpass';A.recLP.frequency.value=20000;A.recLP.Q.value=.5;
+      A.recDuck=c.createGain();A.recDuck.gain.value=1;A.recLP.connect(A.recDuck).connect(A.master)}
+    c.createMediaElementSource(a).connect(A.recLP);
+  }catch(e){A.recFail=1}
+}
+function musMuffle(on){
+  const c=A.ctx;if(!c||!A.recLP)return;
+  A.recLP.frequency.cancelScheduledValues(c.currentTime);
+  A.recLP.frequency.setTargetAtTime(on?850:20000,c.currentTime,on?.12:.25);
+}
+function musDuck(){
+  const c=A.ctx;if(!c||!A.recDuck)return;const g=A.recDuck.gain,t=c.currentTime;
+  g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(.32,t+.12);g.setTargetAtTime(1,t+1.6,.6);
+}
+let beatIv=null;
+function heartbeat(){
+  const c=A.ctx;if(!c||!musOn||document.hidden)return;
+  [[0,1],[.24,.62]].forEach(([dt,k])=>{
+    const t=c.currentTime+dt,o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();
+    o.type='sine';o.frequency.setValueAtTime(72,t);o.frequency.exponentialRampToValueAtTime(46,t+.22);
+    lp.type='lowpass';lp.frequency.value=220;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16*k,t+.015);g.gain.exponentialRampToValueAtTime(.0008,t+.42);
+    o.connect(lp).connect(g).connect(A.mus);o.start(t);o.stop(t+.5);
+  });
+}
+function musTension(on){
+  if(on&&!beatIv){heartbeat();beatIv=setInterval(heartbeat,1650)}
+  else if(!on&&beatIv){clearInterval(beatIv);beatIv=null}
+}
+let muffled=false;
+new MutationObserver(()=>{const m=!!document.getElementById('modal');if(m!==muffled){muffled=m;musMuffle(m)}}).observe(document.body,{childList:true,subtree:true});
 /* =============================== RULES =============================== */
 /* Best way to split cards into sets. Triple = 120, Category set = 60. */
 function bestSets(cards){
@@ -2233,7 +2280,7 @@ function startGame(){
 let dealIn=false;
 let tickIv=null;
 function startLoops(){clearInterval(tickIv);tickIv=setInterval(tick,100)}
-function stopLoops(){clearInterval(tickIv);tickIv=null}
+function stopLoops(){clearInterval(tickIv);tickIv=null;musTension(false)}
 const delay=(a,b)=>HP.fast?0:rnd(a,b);
 function later(fn,ms){const id=G&&G.id;setTimeout(()=>{if(G&&G.id===id&&!G.over)fn()},ms)}
 
@@ -2466,8 +2513,11 @@ function render(){
   const snap=motionSnap();
   const me=G.turn===0&&!G.over&&!HP.autoHuman;
   $('#game').classList.toggle('myturn',me);
+  musTension(!G.over&&!HP.fast&&G.players.some(p=>p.hand.length>=8&&p.hand[0].id!==-1&&bestSets(p.hand).sets.length>=2));
   [1,2,3].forEach(s=>{const o=$('#opp'+s);o.classList.toggle('active',G.turn===s&&!G.over);o.classList.toggle('away',G.players[s].connected===false);o.innerHTML=oppHTML(s)});
   const canDraw=G.turn===0&&G.phase==='draw'&&!G.over;
+  if(G.over&&!HP.autoHuman)store.set('played',true);
+  $('#game').classList.toggle('firstgame',!store.get('played',false)&&!HP.autoHuman);
   $('#hudRound').textContent=G.round;
   $('#hudDeck').textContent=G.draw.length;
   $('#msg').innerHTML=slipText();
@@ -2988,8 +3038,10 @@ if(/^https?:$/.test(location.protocol))fetch('/api/new',{cache:'no-store'}).then
   $('#jgo').onclick=()=>{store.set('pname',$('#jname').value.trim());net.join(room)};
   $('#jname').addEventListener('keydown',e=>{if(e.key==='Enter')$('#jgo').click()});
  }}
-window.HP=HP;HP.api={startGame,get G(){return G},bestSets,canWin,evalC,render,showResults,seal:sealHTML,endGame,declareWin,rec:REC,sfx:()=>Object.keys(SB).filter(k=>k!=="_go")};
+window.HP=HP;HP.api={startGame,get G(){return G},bestSets,canWin,evalC,render,showResults,seal:sealHTML,endGame,declareWin,rec:REC,audio:A,sfx:()=>Object.keys(SB).filter(k=>k!=="_go")};
 })();
+/* installable, and solo games keep working offline (not inside an embedded preview, where an old copy could linger) */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)&&window.top===window)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
 </html>
