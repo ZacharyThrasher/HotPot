@@ -2,7 +2,7 @@
 
 Checked 2026-10-08. All found music is real recordings; nothing here was composed or generated.
 
-## Ready to use (2 tracks)
+## Cantonese gaohu solos (2 tracks)
 
 Files are Wikimedia's own MP3 transcodes of the original Ogg uploads (same recording, same license; MP3 plays in every browser). Both are solo gaohu (the high Cantonese fiddle) playing classic Guangdong music (廣東音樂), no vocals.
 They are **CC BY-SA 4.0**, not public domain: free to use in the game, but the credit line below must appear somewhere (credits screen or about page), and if we edit the audio itself (trim, loop, remix), the edited file must stay CC BY-SA 4.0. The game's code is not affected.
@@ -18,6 +18,28 @@ They are **CC BY-SA 4.0**, not public domain: free to use in the game, but the c
 - "Yu Da Ba Jiao (雨打芭蕉)", traditional, arr. Qiu Hechou, performed by Zhang Peijian, recorded by David290, via Wikimedia Commons, CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 
 **How verified:** read each file's license fields through the Wikimedia Commons API (`LicenseShortName: CC BY-SA 4.0`, `AttributionRequired: true`, `Credit: Own work` by uploader David290). The compositions themselves are old enough to be public domain (Yan Laolie died c. 1921; the arrangement was published 1917), so the only rights are in this modern recording, which the uploader licensed.
+
+## Cozy Asian set (6 tracks, added 2026-10-08)
+
+Calm, loop-friendly pieces with Chinese and Japanese instruments by Kevin MacLeod, all **CC BY 4.0** (free to use, credit required, no share-alike). Downloaded straight from incompetech.com.
+
+| File | Feel (from the composer's catalog) | Instruments | Length |
+|---|---|---|---|
+| `guzheng-city-kevin-macleod.mp3` | Bright, calming, relaxed | Guzheng, light percussion | 1:54 |
+| `ripples-kevin-macleod.mp3` | Calming, relaxed (slow, flowing) | Guzheng solo | 3:25 |
+| `ishikari-lore-kevin-macleod.mp3` | Calming, relaxed | Koto, flute, percussion | 2:44 |
+| `senbazuru-kevin-macleod.mp3` | Calming, warm | Koto, flute, cello | 1:34 |
+| `cattails-kevin-macleod.mp3` | Calming, relaxed, gentle sway | Erhu, guitar, banjo, accordion | 2:39 |
+| `shenyang-kevin-macleod.mp3` | Bright, relaxed (the most upbeat one) | Erhu, pipa, yangqin | 2:31 |
+
+**Credit line (copy as is; one block covers all six):**
+
+"Guzheng City", "Ripples", "Ishikari Lore", "Senbazuru", "Cattails", "Shenyang"
+Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons: By Attribution 4.0
+http://creativecommons.org/licenses/by/4.0/
+
+**How verified:** incompetech.com's license page (https://incompetech.com/music/royalty-free/licenses/) generates exactly this credit block for its free Creative Commons option, and each track is in its official catalog (https://incompetech.com/music/royalty-free/pieces.json) with ISRCs USUAN2100001, USUAN1100691, USUAN1100192, USUAN1100821, USUAN1100743, USUAN1600066.
 
 ## Leads not downloaded (rights unclear)
 
