@@ -989,6 +989,19 @@ button.card{cursor:pointer}
   .deck{--cw:var(--dw);--bw:var(--dw);width:var(--dw);height:calc(var(--dw)*1.4);left:calc(50% - var(--dw)/2);top:calc(50% - var(--dw)*.7)}
   .pile .mat{opacity:1}
 }
+
+/* taps always reach your cards: the table's empty spaces let touches through, and your hand sits above the pot */
+.ring-seats,.hearth{pointer-events:none}
+.ring-seats .pile,.ring-seats .deck,#pot{pointer-events:auto}
+#me{z-index:8}
+.hud:has(.tools.open){z-index:12}
+#me,.mehand{pointer-events:none}
+#me .hand,#me .drawn,#me .card,#me .mebar,#me .mebar *,#me .slot{pointer-events:auto}
+/* no pinch or swipe can cancel a tap on the table */
+#game{touch-action:manipulation}
+#hand .card,.drawn .card{touch-action:none}
+/* on touch screens the broth is scenery only */
+html.touch #pot{pointer-events:none}
 </style>
 
 <body>
@@ -2343,6 +2356,7 @@ function floatStep(now){
 }
 /* steam leans away from a hovering hand */
 document.addEventListener('pointermove',e=>{
+  if(e.pointerType!=='mouse')return;
   const p=e.target.closest&&e.target.closest('#pot');const st=document.querySelector('#pot>svg.steam');if(!st)return;
   if(!p||RM.matches){st.style.removeProperty('--lean');return}
   const r=p.getBoundingClientRect(),k=(e.clientX-(r.left+r.width/2))/(r.width/2);st.style.setProperty('--lean',(-k*14).toFixed(1)+'deg');
@@ -2884,7 +2898,13 @@ function selectCard(id){
   if(G.sel===id){attemptDiscard();return}
   G.sel=id;sfx.select();renderMe();$('#msg').innerHTML=slipText();
 }
-let suppressClick=false;
+let suppressClick=0;
+/* a card tapped before you've drawn: the deck hops to show where to start */
+function nudgeDeck(){const d=$('#felt .deck');if(!d||RM.matches)return;d.animate([{transform:'none'},{transform:'translateY(-9px) rotate(-4deg)',offset:.3},{transform:'translateY(2px) rotate(2deg)',offset:.65},{transform:'none'}],{duration:560,easing:'ease-out'})}
+/* remember whether the last press was a finger: touch screens skip the broth's tap effects */
+let lastPT='mouse';
+document.addEventListener('pointerdown',e=>{lastPT=e.pointerType||'mouse';document.documentElement.classList.toggle('touch',lastPT!=='mouse')},true);
+if(matchMedia('(hover:none) and (pointer:coarse)').matches)document.documentElement.classList.add('touch');
 /* phones: the toolbar folds into one tag; tap it and the rest drop down on their strings */
 function toolsMenu(on){
   const t=$('.tools'),b=$('.menutag');if(!t||!b)return;
@@ -2894,20 +2914,21 @@ function toolsMenu(on){
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.tools'))toolsMenu(false)},true);
 document.addEventListener('click',e=>{
-  if(suppressClick){suppressClick=false;return}
+  if(suppressClick&&performance.now()<suppressClick){suppressClick=0;return}
   const diffB=e.target.closest('[data-diff]');
   if(diffB){diff=diffB.dataset.diff;store.set('diff',diff);sfx.select();document.querySelectorAll('[data-diff]').forEach(b=>{const on=b.dataset.diff===diff;b.setAttribute('aria-pressed',on);b.setAttribute('aria-checked',on);b.classList.toggle('on',on)});return}
   const lan=e.target.closest('.lantern');
   if(lan){lan.classList.remove('swing');void lan.offsetWidth;lan.classList.add('swing');sfx.chime(+lan.dataset.i);setTimeout(()=>lan.classList.remove('swing'),2300);return}
   const cardB=e.target.closest('#hand .card, .drawn .card');
-  if(cardB&&G&&!modal){selectCard(+cardB.dataset.id);return}
+  if(cardB&&G&&!modal){if(G.turn===0&&G.phase==='draw'&&!G.over)nudgeDeck();else selectCard(+cardB.dataset.id);return}
   if(e.target.closest('#pot')){
+    if(lastPT!=='mouse')return;
     {ripple(e);sfx.bubbles();const now=performance.now();potTaps=now-potT<1600?potTaps+1:1;potT=now;if(potTaps===5){potTaps=0;heartSteam();setTimeout(()=>sfx.chime(4),300)}}
     return;
   }
   const os=e.target.closest('.opp .seal');
   if(os&&G&&!modal){const k=+os.id.slice(2)||1;sfx.chime(k+1);if(!RM.matches)os.animate([{transform:'none'},{transform:'rotate(-9deg) scale(1.08)',offset:.3},{transform:'rotate(5deg)',offset:.6},{transform:'none'}],{duration:620,easing:'ease-out'});return}
-  if(G&&!modal&&!e.target.closest('button,a,.card,.pile,.deck,.opp,#me,.hud,.slipwrap,.tools,.modal,[data-act]')&&touchTable(e))return;
+  if(G&&!modal&&lastPT==='mouse'&&!e.target.closest('button,a,.card,.pile,.deck,.opp,#me,.hud,.slipwrap,.tools,.modal,[data-act]')&&touchTable(e))return;
   const b=e.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act;
   switch(a){
@@ -2973,7 +2994,7 @@ addEventListener('pointermove',e=>{
   if(!drag.el||e.pointerId!==drag.pid)return;
   const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
   if(!drag.on){
-    if(Math.hypot(dx,dy)<9)return;
+    if(Math.hypot(dx,dy)<(e.pointerType==='mouse'?9:18))return;
     drag.on=true;buzz(12);const r=drag.el.getBoundingClientRect();
     const g=drag.el.cloneNode(true);g.classList.add('ghost');g.classList.remove('sel','pop');
     g.style.cssText+=`;--cw:${r.width}px;left:${r.left}px;top:${r.top}px;transform:rotate(-4deg) scale(1.06);transition:none;filter:drop-shadow(0 18px 18px rgba(0,0,0,.45))`;
@@ -2990,7 +3011,7 @@ function endDrag(e){
   const was=drag.on,hot=drag.hot,id=drag.id,g=drag.g,el=drag.el;
   drag.el=null;drag.on=false;drag.hot=false;
   if(!was)return;
-  suppressClick=true;setTimeout(()=>suppressClick=false,0);
+  suppressClick=performance.now()+450;
   drag.pile&&drag.pile.classList.remove('drop','drop-hot');
   if(hot&&G&&G.turn===0&&G.phase==='discard'){g.remove();G.sel=id;attemptDiscard();return}
   el.classList.remove('dragging');
