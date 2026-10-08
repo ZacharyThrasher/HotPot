@@ -751,6 +751,57 @@ button.card{cursor:pointer}
   .drawn .newnote{top:-24px}
   .nudge{font-size:16px}
 }
+
+/* ===== critic round three ===== */
+/* the toolbar becomes a row of little hand-lettered tags, each on its own string */
+.tools{padding:0;gap:6px;filter:none}
+.tools::before{display:none}
+.ibtn{width:auto;height:auto;min-width:46px;padding:16px 8px 6px;display:grid;justify-items:center;gap:1px;color:#3b2416;isolation:isolate;transform-origin:50% 0;transform:rotate(var(--tt,0deg));transition:transform .4s cubic-bezier(.3,1.6,.5,1)}
+.ibtn::after{content:"";position:absolute;inset:10px 0 0;z-index:-1;background:var(--grain),#f1dfbd;-webkit-mask:var(--rough-b) 0 0/100% 100% no-repeat;mask:var(--rough-b) 0 0/100% 100% no-repeat;filter:drop-shadow(0 3px 3px rgba(20,8,0,.45))}
+.ibtn+.ibtn::before,.ibtn::before{content:"";position:absolute;left:50%;top:-12px;width:1.4px;height:24px;background:#2a1a10;border-radius:1px;transform:none}
+.ibtn .tip{display:none}
+.ibtn svg{width:20px;height:20px}
+.ibtn .w{font:700 14px/1 var(--f-hand);color:#4a2c18}
+.ibtn:hover{transform:rotate(calc(var(--tt,0deg) - 5deg)) translateY(1px);color:#8e2a1a}
+.ibtn:nth-child(2n){--tt:2deg}.ibtn:nth-child(3n){--tt:-2.5deg}.ibtn:nth-child(5n){--tt:1deg}
+.ibtn[aria-pressed=false]{opacity:.7}
+.ibtn[aria-pressed=false] .w{text-decoration:line-through;text-decoration-color:rgba(176,65,46,.7)}
+.ibtn[data-act=handview]{display:none}
+@media (max-width:640px){.tools{gap:3px}.ibtn{min-width:40px;padding:14px 4px 5px}.ibtn svg{width:17px;height:17px}.ibtn .w{font-size:12px}}
+@media (max-height:480px) and (orientation:landscape){.ibtn .w{display:none}.ibtn{padding:12px 6px 4px}}
+/* opponents' fans swing from a point toward the well */
+.fan .cb{transform-origin:50% 190%}
+.side .fan .cb{transform-origin:190% 50%}
+#opp1 .side .fan .cb,#opp1 .fan .cb{transform-origin:-90% 50%}
+.side .fan .cb+.cb{margin-top:calc(var(--bw)*-.78)}
+/* lanterns rise from behind the hand, above the broth */
+#game>.skylantern{z-index:2}
+/* the ninth place: a chalky card outline, tilted like a real card */
+.slot{transform:rotate(-4deg);border-radius:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 140' preserveAspectRatio='none'%3E%3Cpath d='M9 5c28-2 56-1 83 1 3 40 2 88 1 128-27 2-56 1-84 0C6 92 7 46 9 5z' fill='rgba(60,20,0,.16)' stroke='rgba(255,244,222,.7)' stroke-width='2' stroke-dasharray='7 5' stroke-linejoin='round'/%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+.slot::before,.slot::after{display:none}
+/* the bill: stamp beside the score */
+.hanko{left:auto;right:96px;top:-6px}
+@media (max-width:640px){.hanko{right:52px;left:auto;top:-8px}}
+/* pile and example cards drop their tiny names; the foods page keeps them */
+@container (max-width:66px){.card .nm{display:none}.card .art{top:15%;left:3cqw;right:3cqw}}
+@container (max-width:66px){.shelf .card .nm{display:block}.shelf .card .art{top:21%;left:6cqw;right:6cqw}}
+/* the empty pot: a sign over everyone, no one person said it */
+.moment.dry .bubble::after{display:none}
+/* the turn fuse: a real stick of incense in a little clay holder */
+.slip .fuse{height:4px;bottom:6px}
+.slip .fuse i{height:4px;background:repeating-linear-gradient(90deg,#7a5235 0 3px,#8e623f 3px 5px)}
+.slip .fuse::before{content:"";position:absolute;left:-12px;top:-5px;width:14px;height:12px;border-radius:50% 50% 40% 40%;background:radial-gradient(circle at 40% 35%,#c08a5c,#7d5a3f 70%);box-shadow:0 1px 2px rgba(0,0,0,.35)}
+/* the rule doodles in the same weight as the card ink */
+.steps svg{stroke-width:2.4;stroke:#4a2c18}
+.keys kbd{font:700 15px/1 var(--f-hand);background:none;box-shadow:none;padding:0 2px;color:var(--lacq);transform:none;border-bottom:1.5px solid rgba(176,65,46,.5);border-radius:0}
+/* phone: lift your portrait clear of the threads */
+@media (max-width:640px){.mebar{margin-top:8px}.hand{row-gap:18px}}
+
+#opp3 .fan .cb{transform:rotate(calc(var(--r,0deg)*-1)) translateY(var(--y,0px))}
+.opp.side{gap:18px}
+
+@container (max-width:66px){.hand .card .nm,.drawn .card .nm{display:block}.hand .card .art,.drawn .card .art{top:21%;left:6cqw;right:6cqw}}
+.opp.top{gap:22px}
 </style>
 
 <body>
@@ -769,13 +820,13 @@ button.card{cursor:pointer}
         <div class="sign"><span>round</span><b id="hudRound">1</b><b id="hudDeck" hidden>64</b></div>
       </div>
       <div class="tools">
-        <button class="ibtn" data-act="discards" aria-label="Every discard (Q)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 13.4h16.8c-.4 4.2-3.8 6.8-8.4 6.8s-8-2.6-8.4-6.8z"/><path d="M7.4 13.2l1.2-8.6 6.4 1-1.1 7.6"/><path d="M13.6 13.1l3.2-6.4 2.9 1.5-2.4 4.9"/></svg><span class="tip">Discards<span class="k">Q</span></span></button>
-        <button class="ibtn" data-act="handview" aria-label="Your hand up close (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 18.6l-1.6-9.2 5.2-.9 1.6 9.2z"/><path d="M9.6 17.4L9.4 7.6h5.4l-.3 9.8z"/><path d="M14.6 17.6l2.3-9.1 5 1.3-2.4 9z"/><path d="M8.4 21c2.4.7 5.2.8 7.4 0"/></svg><span class="tip">Your hand<span class="k">E</span></span></button>
-        <button class="ibtn" data-act="helper" id="btnHelper" aria-pressed="true" aria-label="Hints"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c.5 3.6 1.8 5 5.6 5.7-3.6.6-5 2.1-5.6 5.8-.6-3.7-2-5.2-5.7-5.8 3.7-.7 5.1-2.1 5.7-5.7z"/><path class="on-only" d="M18.4 14.4c.3 1.6 1 2.3 2.6 2.6-1.6.3-2.3 1-2.6 2.6-.3-1.6-1-2.3-2.6-2.6 1.6-.3 2.3-1 2.6-2.6zM5.8 15.8c.2 1.1.7 1.6 1.8 1.8-1.1.2-1.6.7-1.8 1.8-.2-1.1-.7-1.6-1.8-1.8 1.1-.2 1.6-.7 1.8-1.8z"/></svg><span class="tip" id="tipHelper">Hints on</span></button>
-        <button class="ibtn" data-act="help" aria-label="How to play (T)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 5.2c3.6-.6 8.2-.6 11.6 0 .6 4.6.6 9 0 13.6-3.4.6-8 .6-11.6 0"/><path d="M6.6 5.2c-1.8-.2-2.8.8-2.6 2.2.1 1.2 1 1.8 2.4 1.6M6.6 18.8c-1.8.2-2.8-.8-2.6-2.2.1-1.2 1-1.8 2.4-1.6"/><path d="M6.4 9v6"/><path d="M9.6 9.4h5.8M9.6 12h6.4M9.6 14.6h4.2"/></svg><span class="tip">How to play<span class="k">T</span></span></button>
-        <button class="ibtn" data-act="mute" id="btnMute" aria-pressed="true" aria-label="Sounds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2v1.6"/><path d="M7 15.6c.2-4.4.6-9.4 5-9.6 4.4.2 4.8 5.2 5 9.6l1.8 2H5.2z"/><path d="M10.4 19.6c.4 1.2 2.8 1.2 3.2 0"/><path class="on-only" d="M20 6.6c1 1.4 1.3 3 1 4.6M4 6.6c-1 1.4-1.3 3-1 4.6"/><path class="off-only" d="M4 4l16 16"/></svg><span class="tip" id="tipMute">Sounds on</span></button>
-        <button class="ibtn" data-act="music" id="btnMusic" aria-pressed="true" aria-label="Music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.6 2.6l-.4 13.6"/><path d="M12.2 4.2l2.6.4M12.2 6.6l2.6.4"/><path d="M8.6 16.8c0-2 2-3.2 4.6-3.2s4.4 1.2 4.4 3.2-1.8 3.4-4.4 3.4-4.6-1.4-4.6-3.4z"/><path d="M4 14.6c6 1.6 12 2.2 17.4 1.8" opacity=".75"/></svg><span class="tip" id="tipMusic">Music on</span></button>
-        <button class="ibtn" data-act="quit" aria-label="Leave the table (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9.4c.2-1.8 3.2-2.8 7-2.8s6.8 1 7 2.8c-.2 1.8-3.2 2.6-7 2.6S5.2 11.2 5 9.4z"/><path d="M6.4 11.2L5 20.4M17.6 11.2l1.4 9.2M10 12l-.6 7M14 12l.6 7M5.8 16.6h12.4"/></svg><span class="tip">Leave<span class="k">Esc</span></span></button>
+        <button class="ibtn" data-act="discards" aria-label="Every discard (Q)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 13.4h16.8c-.4 4.2-3.8 6.8-8.4 6.8s-8-2.6-8.4-6.8z"/><path d="M7.4 13.2l1.2-8.6 6.4 1-1.1 7.6"/><path d="M13.6 13.1l3.2-6.4 2.9 1.5-2.4 4.9"/></svg><span class="w">piles</span><span class="tip">Discards<span class="k">Q</span></span></button>
+        <button class="ibtn" data-act="handview" aria-label="Your hand up close (E)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 18.6l-1.6-9.2 5.2-.9 1.6 9.2z"/><path d="M9.6 17.4L9.4 7.6h5.4l-.3 9.8z"/><path d="M14.6 17.6l2.3-9.1 5 1.3-2.4 9z"/><path d="M8.4 21c2.4.7 5.2.8 7.4 0"/></svg><span class="w">hand</span><span class="tip">Your hand<span class="k">E</span></span></button>
+        <button class="ibtn" data-act="helper" id="btnHelper" aria-pressed="true" aria-label="Hints"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4c.5 3.6 1.8 5 5.6 5.7-3.6.6-5 2.1-5.6 5.8-.6-3.7-2-5.2-5.7-5.8 3.7-.7 5.1-2.1 5.7-5.7z"/><path class="on-only" d="M18.4 14.4c.3 1.6 1 2.3 2.6 2.6-1.6.3-2.3 1-2.6 2.6-.3-1.6-1-2.3-2.6-2.6 1.6-.3 2.3-1 2.6-2.6zM5.8 15.8c.2 1.1.7 1.6 1.8 1.8-1.1.2-1.6.7-1.8 1.8-.2-1.1-.7-1.6-1.8-1.8 1.1-.2 1.6-.7 1.8-1.8z"/></svg><span class="w">hints</span><span class="tip" id="tipHelper">Hints on</span></button>
+        <button class="ibtn" data-act="help" aria-label="How to play (T)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 5.2c3.6-.6 8.2-.6 11.6 0 .6 4.6.6 9 0 13.6-3.4.6-8 .6-11.6 0"/><path d="M6.6 5.2c-1.8-.2-2.8.8-2.6 2.2.1 1.2 1 1.8 2.4 1.6M6.6 18.8c-1.8.2-2.8-.8-2.6-2.2.1-1.2 1-1.8 2.4-1.6"/><path d="M6.4 9v6"/><path d="M9.6 9.4h5.8M9.6 12h6.4M9.6 14.6h4.2"/></svg><span class="w">rules</span><span class="tip">How to play<span class="k">T</span></span></button>
+        <button class="ibtn" data-act="mute" id="btnMute" aria-pressed="true" aria-label="Sounds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2v1.6"/><path d="M7 15.6c.2-4.4.6-9.4 5-9.6 4.4.2 4.8 5.2 5 9.6l1.8 2H5.2z"/><path d="M10.4 19.6c.4 1.2 2.8 1.2 3.2 0"/><path class="on-only" d="M20 6.6c1 1.4 1.3 3 1 4.6M4 6.6c-1 1.4-1.3 3-1 4.6"/><path class="off-only" d="M4 4l16 16"/></svg><span class="w">sound</span><span class="tip" id="tipMute">Sounds on</span></button>
+        <button class="ibtn" data-act="music" id="btnMusic" aria-pressed="true" aria-label="Music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.6 2.6l-.4 13.6"/><path d="M12.2 4.2l2.6.4M12.2 6.6l2.6.4"/><path d="M8.6 16.8c0-2 2-3.2 4.6-3.2s4.4 1.2 4.4 3.2-1.8 3.4-4.4 3.4-4.6-1.4-4.6-3.4z"/><path d="M4 14.6c6 1.6 12 2.2 17.4 1.8" opacity=".75"/></svg><span class="w">music</span><span class="tip" id="tipMusic">Music on</span></button>
+        <button class="ibtn" data-act="quit" aria-label="Leave the table (Esc)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9.4c.2-1.8 3.2-2.8 7-2.8s6.8 1 7 2.8c-.2 1.8-3.2 2.6-7 2.6S5.2 11.2 5 9.4z"/><path d="M6.4 11.2L5 20.4M17.6 11.2l1.4 9.2M10 12l-.6 7M14 12l.6 7M5.8 16.6h12.4"/></svg><span class="w">leave</span><span class="tip">Leave<span class="k">Esc</span></span></button>
       </div>
     </header>
     <div class="slipwrap"><div class="slip paper lift" aria-live="polite"><i class="pin" aria-hidden="true"></i><div class="msg" id="msg"></div><div class="log" id="log"></div><div class="fuse" id="bar" aria-hidden="true"><i></i></div></div></div>
@@ -890,7 +941,7 @@ const ICON=[
 /*10 dumpling*/ `<path d="M6 40C6 22 20 14 32 14s26 8 26 26c0 8-8 10-26 10S6 48 6 40z" fill="#f8ebcb"/>${HL('M12 30c3-7 10-12 18-13-7 3-12 8-14 14z',.65)}<path d="M7 41c4 5 13 7 25 7s21-2 25-7c-1 7-9 9-25 9S8 48 7 41z" fill="#c9884a" stroke="none"/><path d="M14 26q2 5-1 9M21 21q2 6-1 11M29 18q2 6 0 12M37 18q0 6-2 12M45 21q-1 6-4 11M52 28q-2 5-6 8" stroke="#c9a56a" stroke-width="2"/>`,
 /*11 rice cake*/ `<g transform="rotate(-20 32 32)">${tube(16,18,26,7.5,0,'#f1e8d6','#fffdf6')}${tube(11,32,28,7.5,0,'#f6efe1','#fffdf7')}${tube(6,46,30,7.5,0,'#f1e8d6','#fffdf6')}</g><g stroke="none" fill="#6fbd3f"><rect x="47" y="46" width="6" height="2.4" rx="1.2" transform="rotate(30 50 47)"/><rect x="9" y="17" width="5" height="2.4" rx="1.2" transform="rotate(-20 11 18)"/></g>`,
 /*12 udon*/ `<ellipse cx="32" cy="57" rx="16" ry="3.5" fill="#d9c6a0" opacity=".55" stroke="none"/>${S('M25 18c-3 8 3 13 0 21s2 11-2 16',6.5,'#fbf3dc')}${S('M32 19c2 8-3 13 0 21s-1 10 3 15',6.5,'#f1e3bf')}${S('M39 20c-2 8 4 12 1 20s3 10 0 15',6.5,'#fbf3dc')}${S('M5 10L59 19',3.2,'#c98a4b')}${S('M7 18L59 24',3.2,'#b67a3e')}<path d="M9 10l14 2.4" stroke="#f0c48a" stroke-width="1.2" opacity=".8"/>`,
-/*13 glass*/ `<ellipse cx="32" cy="52" rx="22" ry="4" fill="#9fb6cc" opacity=".3" stroke="none"/><path d="M9 36c0-13 10-21 23-21s23 8 23 21-10 17-23 17S9 49 9 36z" fill="#e8eff7"/>${SH('M40 17c9 3 15 10 15 19 0 9-7 15-17 17 6-8 7-25 2-36z',.07)}<g stroke="#9cb4cb" stroke-width="1.3" fill="none" stroke-linecap="round"><path d="M14 35c4-10 17-13 25-8s9 13 1 16-19 2-21-6"/><path d="M19 41c2-8 12-11 19-8s7 10 0 12-15 0-15-6"/><path d="M21 27c7-6 18-5 24 1"/><path d="M12 42c7 8 22 9 31 4"/><path d="M27 21c5-2 10-1 14 1"/><path d="M33 33c3 0 5 2 4 4"/><path d="M47 30c2 4 2 8-1 11"/></g><path d="M45 47c3 4 1 7 5 10M16 46c-2 4 0 7-3 10" stroke="#b9cbdc" stroke-width="1.6" fill="none"/>${HL('M14 30c3-7 9-11 16-12-6 3-10 7-13 13z',.85)}<path d="M51 6l1.6 3.8 3.8 1.6-3.8 1.6L51 16.8l-1.6-3.8-3.8-1.6 3.8-1.6z" fill="#fff" stroke="#9db6cf" stroke-width="1"/><circle cx="12" cy="18" r="1.6" fill="#fff" stroke="none"/>`,
+/*13 glass*/ `<ellipse cx="32" cy="52" rx="22" ry="4" fill="#9fb6cc" opacity=".3" stroke="none"/><path d="M9 36c0-13 10-21 23-21s23 8 23 21-10 17-23 17S9 49 9 36z" fill="#e8eff7"/>${SH('M40 17c9 3 15 10 15 19 0 9-7 15-17 17 6-8 7-25 2-36z',.07)}<g stroke="#9cb4cb" stroke-width="1.3" fill="none" stroke-linecap="round"><path d="M14 35c4-10 17-13 25-8s9 13 1 16-19 2-21-6"/><path d="M19 41c2-8 12-11 19-8s7 10 0 12-15 0-15-6"/><path d="M21 27c7-6 18-5 24 1"/><path d="M12 42c7 8 22 9 31 4"/><path d="M27 21c5-2 10-1 14 1"/><path d="M33 33c3 0 5 2 4 4"/><path d="M47 30c2 4 2 8-1 11"/></g><path d="M45 47c3 4 1 7 5 10M16 46c-2 4 0 7-3 10" stroke="#b9cbdc" stroke-width="1.6" fill="none"/>${HL('M14 30c3-7 9-11 16-12-6 3-10 7-13 13z',.85)}<path d="M50 24c4 2 6 6 5 10M9 30c-3 2-4 6-2 9" stroke="#9cb4cb" stroke-width="1.2" fill="none" stroke-linecap="round"/>`,
 /*14 ramen*/ `<path d="M6 24h52v26c0 4-3 6-6 6H12c-3 0-6-2-6-6z" fill="#f3cf57" opacity=".35" stroke="none"/>${S('M6 30q6-8 12 0t12 0t12 0t12 0',5,'#f3cf57')}${S('M6 40q6-8 12 0t12 0t12 0t12 0',5,'#f3cf57')}${S('M6 50q6-8 12 0t12 0t12 0t12 0',5,'#f3cf57')}<ellipse cx="44" cy="17" rx="11" ry="8.5" fill="#fffdf6"/><circle cx="44" cy="17" r="4.6" fill="#f5a623"/>${HL('M41 15a3 3 0 0 1 4-2',.8)}<path d="M41.6 15.2a2.6 2.6 0 0 1 3-1.6" stroke="#ffe3a8" stroke-width="1.3"/><rect x="7" y="7" width="12" height="17" rx="2" fill="#2f5a3a" transform="rotate(-12 13 15)"/><path d="M10 11l3 11" stroke="#4d7d57" stroke-width="1.2"/>`,
 /*15 morel*/ `<path d="M32 5c11 2 16 18 15 33H17C16 23 21 7 32 5z" fill="#ad8752"/>${SH('M36 7c7 5 11 17 11 31h-7c2-11 0-23-4-31z',.2)}<g fill="#6f4f27" stroke="none"><ellipse cx="28" cy="16" rx="3" ry="4"/><ellipse cx="37" cy="19" rx="3" ry="4"/><ellipse cx="25" cy="27" rx="3.2" ry="4"/><ellipse cx="34" cy="30" rx="3.2" ry="4"/><ellipse cx="42" cy="31" rx="2.6" ry="3.6"/><ellipse cx="31" cy="9" rx="2" ry="3"/></g><path d="M23 38h18l-1 16c-1 6-15 6-16 0z" fill="#f4e9cf"/>${SH('M34 38h7l-1 16c-.5 3-3 4.5-6 5 1-6 1-14 0-21z',.12)}`,
 /*16 brightshroom*/ `<circle cx="32" cy="30" r="27" fill="#6ff0ff" opacity=".22" stroke="none"/><path d="M8 34C8 18 20 8 32 8s24 10 24 26c0 3-4 4-24 4S8 37 8 34z" fill="#6a4fd0"/>${SH('M40 10c9 4 16 12 16 24 0 3-4 4-14 4 2-9 1-20-2-28z',.2)}${HL('M14 26c2-8 9-14 17-15-7 3-12 8-14 15z',.3)}<path d="M25 38h14l2 16c-4 4-14 4-18 0z" fill="#ddd3ff"/><g fill="#9ffbff" stroke="none"><circle cx="22" cy="22" r="4"/><circle cx="36" cy="17" r="3.2"/><circle cx="44" cy="28" r="3.8"/><circle cx="29" cy="30" r="2.6"/></g>`,
@@ -959,7 +1010,8 @@ function paintSVG(t){
      <feComposite in="b" in2="ma" operator="in" result="body"/>
      <feMerge><feMergeNode in="body"/><feMergeNode in="rimd"/></feMerge>
    </filter></defs>
-   <g filter="url(#wash)" opacity=".85"><ellipse cx="32" cy="35" rx="26" ry="23" fill="${wash}"/></g>
+   <radialGradient id="wm" cx=".5" cy=".53" r=".5"><stop offset=".62" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient><mask id="wmask" maskUnits="userSpaceOnUse" x="-8" y="-8" width="80" height="80"><rect x="-8" y="-8" width="80" height="80" fill="url(#wm)"/></mask>
+   <g mask="url(#wmask)"><g filter="url(#wash)" opacity=".85"><ellipse cx="32" cy="35" rx="24" ry="21" fill="${wash}"/></g></g>
    <g filter="url(#paint)"><g fill="none" stroke="#5b3a29" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">${ICON[t]}</g></g></svg>`;
 }
 function backSVG(){
@@ -1264,11 +1316,11 @@ function bigPotSVG(W,H,g){
     anise:(s)=>{let d='';for(let j=0;j<8;j++)d+=`<ellipse cx="0" cy="-3.6" rx="1.7" ry="3.3" transform="rotate(${j*45})" fill="#6e3518" stroke="#3e1a08" stroke-width=".5"/><circle cx="0" cy="-4.6" r=".75" transform="rotate(${j*45})" fill="#c08a52"/>`;return `<g transform="scale(${s*.9})">${d}<circle r="1.3" fill="#3e1a08"/></g>`},
     corn:(s)=>`<g transform="scale(${s})"><path d="M-2.2-2.4h4.4c1 1.6 1 3.4 0 4.8h-4.4c-1-1.4-1-3.2 0-4.8z" fill="#f4c443" stroke="#b5841a" stroke-width=".6"/><path d="M-1.2-1.4h2" stroke="#fff0b0" stroke-width=".8"/></g>`,
   };
-  const MENU=[['tomato','tomato','scallion','scallion','goji','anise'],['corn','corn','goji','ginger','scallion','anise'],['chili','chili','pepper','pepper','flake','flake','anise'],['goji','goji','jujube','ginger','scallion','scallion']];
+  const MENU=[['tomato','tomato','scallion','scallion','goji','anise'],['goji','ginger','ginger','scallion','anise'],['chili','chili','pepper','pepper','flake','flake','anise'],['goji','goji','jujube','ginger','scallion','scallion']];
   const bit=(x,y,s)=>{const m=MENU[sectorAt(x,y)],k=m[(R()*m.length)|0];return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${(R()*360)|0})">${G[k](s)}</g>`};
   // chili oil: little clusters of golden beads, the way oil gathers on a simmering broth
   let oil='';
-  for(let i=0;i<Math.round(16*Math.min(1.4,W*H/1e6)+6);i++){
+  for(let i=0;i<Math.round(10*Math.min(1.4,W*H/1e6)+4);i++){
     const t=.1+R()*.8,a=R()*6.283,x0=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y0=wy+Math.sin(a)*(wry+(ry-wry)*t),n=3+((R()*7)|0);
     for(let j=0;j<n;j++){const x=x0+(R()-.5)*34,y=y0+(R()-.5)*22,r=1.5+R()*R()*9;
       oil+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r)}" fill="#ffd27a" fill-opacity="${(.12+R()*.16).toFixed(2)}"/><path d="M${f1(x-r*.55)} ${f1(y-r*.2)}a${f1(r*.6)} ${f1(r*.6)} 0 0 1 ${f1(r*.5)} ${f1(-r*.45)}" stroke="#fff8e0" stroke-opacity=".55" stroke-width="${f1(Math.max(.6,r*.18))}" fill="none" stroke-linecap="round"/>`}
@@ -1292,12 +1344,12 @@ function bigPotSVG(W,H,g){
     <circle cx="6" cy="5" r="2.2" fill="#7fbf4c"/><circle cx="-6" cy="7" r="1.6" fill="#ffd27a" opacity=".6"/>
   </g>`;
   let bits='';
-  const nb=Math.round(16*Math.min(1.4,W*H/1e6)+6);
+  const nb=Math.round(11*Math.min(1.4,W*H/1e6)+5);
   for(let c=0;c<nb;c++){
     const t=.5+R()*.42,a=R()*6.283,x0=wx+Math.cos(a)*(wrx+(rx-wrx)*t),y0=wy+Math.sin(a)*(wry+(ry-wry)*t),n=2+((R()*4)|0);
     for(let j=0;j<n;j++){const x=x0+(R()-.5)*60,y=y0+(R()-.5)*36;
       if(((x-cx)/rx)**2+((y-cy)/ry)**2>.9||((x-wx)/(wrx+14))**2+((y-wy)/(wry+14))**2<1)continue;
-      bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px">${bit(x,y,sc*(1.15+R()*.5))}</g>`}
+      bits+=`<g class="bit" style="--bd:${(7+R()*7).toFixed(1)}s;--bdl:${(-R()*9).toFixed(1)}s;--bx:${f1((R()-.5)*14)}px;--by:${f1((R()-.5)*8)}px">${bit(x,y,sc*(1.6+R()*.6))}</g>`}
   }
   // iron dividers: from the lip of the well out to the rim, with a little cloud scroll where they meet the well
   let divs='';
@@ -1800,8 +1852,8 @@ function moment(kind,name){
   setTimeout(()=>sfx.stamp(),120);
   if(mine&&!RM.matches){
     const few=innerWidth<640;
-    L2.insertAdjacentHTML('beforeend',Array.from({length:few?9:16},(_,i)=>`<div class="skylantern" style="left:${(i%2?rnd(1,13):rnd(84,96)).toFixed(1)}%;--s:${rnd(few?16:22,few?30:46).toFixed(0)}px;--d:${rnd(7,12).toFixed(1)}s;--dl:${(i*.28+rnd(0,.3)).toFixed(2)}s;--dx1:${rnd(-40,40).toFixed(0)}px;--dx2:${rnd(-60,60).toFixed(0)}px">${skyLanternSVG()}</div>`).join('')
-      +Array.from({length:26},()=>`<i class="petal" style="left:${rnd(0,100).toFixed(1)}%;--pc:${['#f4c1b8','#f7d7c4','#efb0a6','#fbe3d2'][(Math.random()*4)|0]};--d:${rnd(5,9).toFixed(1)}s;--dl:${rnd(.2,2.5).toFixed(2)}s"></i>`).join(''));
+    $('#game').insertAdjacentHTML('beforeend',Array.from({length:few?9:16},(_,i)=>`<div class="skylantern" style="left:${(i%2?rnd(1,13):rnd(84,96)).toFixed(1)}%;--s:${rnd(few?16:22,few?30:46).toFixed(0)}px;--d:${rnd(7,12).toFixed(1)}s;--dl:${(i*.28+rnd(0,.3)).toFixed(2)}s;--dx1:${rnd(-40,40).toFixed(0)}px;--dx2:${rnd(-60,60).toFixed(0)}px">${skyLanternSVG()}</div>`).join('')
+      +'');L2.insertAdjacentHTML('beforeend',Array.from({length:26},()=>`<i class="petal" style="left:${rnd(0,100).toFixed(1)}%;--pc:${['#f4c1b8','#f7d7c4','#efb0a6','#fbe3d2'][(Math.random()*4)|0]};--d:${rnd(5,9).toFixed(1)}s;--dl:${rnd(.2,2.5).toFixed(2)}s"></i>`).join(''));
     setTimeout(()=>{document.querySelectorAll('.skylantern,.petal').forEach(e=>e.remove())},16000);
   }
 }
@@ -1913,7 +1965,7 @@ function pileHTML(seat){
 }
 function fanHTML(n,out){
   const R=seeded(n*13+7);
-  return Array.from({length:n},(_,i)=>{const o=(i-(n-1)/2);return `<i class="cb ${out&&i===n-1?'out':''}" style="--r:${(o*3.2+(R()-.5)*5).toFixed(1)}deg;--y:${((R()-.5)*4).toFixed(1)}px"></i>`}).join('');
+  return Array.from({length:n},(_,i)=>{const o=(i-(n-1)/2);return `<i class="cb ${out&&i===n-1?'out':''}" style="--r:${(o*6+(R()-.5)*3).toFixed(1)}deg;--y:${((R()-.5)*3).toFixed(1)}px"></i>`}).join('');
 }
 const moodOf=seat=>G.over?(G.winner===seat?'happy':G.winner!=null?'sad':''):(G.turn===seat&&seat!==0?'think':'');
 function oppHTML(seat){
@@ -1975,7 +2027,7 @@ function renderMe(){
     <div class="drawn">${drawn?`<span class="newnote">new!<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 2c-2 7 1 13 8 16"/><path d="M8 19l4-1-1-4"/></svg></span>${mk(drawn,0,true)}`:`<div class="slot"><span>${G.turn===0&&G.phase==='draw'&&!G.over?'draw your<br>9th card':'9th<br>card'}</span></div>`}</div></div>
     <div class="mebar"><div class="who ${G.turn===0&&!G.over?'on':''}">${sealHTML(store.get('pname','')||'You',ME_COLOR,11,(G.turn===0&&!G.over&&!HP.autoHuman?'on ':'')+moodOf(0),'av0',true)}</div>
       <span class="sets" title="Sets in your hand">${[0,1,2].map(i=>bowl(i<setN)).join('')}<span>${setN} of 3 sets</span></span>
-      ${canDiscard&&G.sel!=null?`<button class="btn primary" data-act="discard">Toss ${nameOf(me.hand.find(c=>c.id===G.sel).t)}</button>`:`<span class="nudge" style="${canDiscard?'':'visibility:hidden'}">pick one to toss back <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17c-1-5 0-9 1-13M7 7l4-3.4 3 4"/></svg></span>`}</div>
+      ${canDiscard&&G.sel!=null?`<button class="btn primary" data-act="discard">Toss ${nameOf(me.hand.find(c=>c.id===G.sel).t)}</button>`:''}</div>
 `;
   const hb=$('#btnHelper');hb.setAttribute('aria-pressed',helper);$('#tipHelper').textContent=helper?'Hints on':'Hints off';
 }
@@ -2068,7 +2120,7 @@ function showResults(){
   openModal(`<div class="billhead"><h2>${title}</h2><p class="billsub">${G.winner==null?'Nobody made three sets before the pot ran out, so everyone keeps what they hold.':`Table for four, round ${G.round}. Here’s what everyone was holding.`}</p></div>
   <div class="lines">${rows.map((r,k)=>`<div class="line ${G.winner===r.i?'win':''}" style="--d:${(k*.09).toFixed(2)}s">
     ${sealHTML(r.p.name,r.p.color,seedOf(r.p.name)+r.i,'sm '+mood(r.i),'',r.i===0&&!G.online?true:r.p.color===ME_COLOR)}
-    <div class="lwho"><b>${r.i===0?'You':esc(r.p.name)}</b><small>${r.bs.sets.length?r.bs.sets.map(s=>s.kind==='triple'?'120':'60').join(' + '):'no sets'}${r.bonus?`<br>+ ${r.bonus} for calling hotpot`:''}</small></div>
+    <div class="lwho"><b>${r.i===0?'You':esc(r.p.name)}</b><small>${r.bs.sets.length?r.bs.sets.map(s=>s.kind==='triple'?'120':'60').join(' + '):'no sets'}${r.bonus?`<br>+${r.bonus} hotpot!`:''}</small></div>
     <div class="lcards">${lineCards(r.bs)}</div>
     <span class="amt">${r.total}</span>${G.winner===r.i?'<span class="hanko thump" aria-label="winner"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="'+roughCircle(30,30,26,1.4,r.i+3,48)+'" fill="none" stroke="currentColor" stroke-width="3"/></svg><span>won</span></span>':''}</div>`).join('')}</div>
   <div class="total"><span>table total</span><i></i><b>${table}</b></div>
